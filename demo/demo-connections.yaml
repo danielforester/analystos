@@ -1,0 +1,16 @@
+# Demo connection config — ready to use out of the box.
+# Copy this file to .claude/db-connections/active.yaml in your project.
+# No environment variables or credentials required.
+
+active: demo
+
+connections:
+  - name: demo
+    type: sqlite
+    display_name: "DB Analyst Demo Database"
+    read_only: true
+
+    sqlite:
+      path: ./demo/demo.db    # Adjust this path if your project root differs
+
+    cost_thresholds: ~        # No cost thresholds for SQLite
