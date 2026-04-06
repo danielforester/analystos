@@ -28,9 +28,18 @@ available in every project.
 mkdir -p ~/.claude/skills
 mkdir -p ~/.claude/hooks
 
-# Copy from this repo
+# Copy from this repo — skills
 cp install/skills/db-dialect.md    ~/.claude/skills/
 cp install/skills/db-cost-check.md ~/.claude/skills/
+cp install/skills/db-introspect.md ~/.claude/skills/
+cp install/skills/db-sample.md     ~/.claude/skills/
+cp install/skills/db-orient.md     ~/.claude/skills/
+cp install/skills/db-explain.md    ~/.claude/skills/
+cp install/skills/db-profile.md    ~/.claude/skills/
+cp install/skills/db-joins.md      ~/.claude/skills/
+cp install/skills/db-status.md     ~/.claude/skills/
+
+# Copy hooks
 cp install/hooks/db-safety.py      ~/.claude/hooks/
 cp install/hooks/db-cost-gate.py   ~/.claude/hooks/
 
@@ -163,11 +172,14 @@ claude
 
 Claude will greet you with: `Connected to DB Analyst Demo Database (sqlite). KB loaded...`
 
-Try these starter prompts:
-- `"What tables are in this database?"`
-- `"Show me the schema for sales_orders"`
-- `"How do I join customers to their orders?"`
-- `"What are the known gotchas in this database?"`
+Try these starter commands:
+- `/db-status` — confirm the connection is loaded and see the KB state
+- `/db-orient` — get a full structured orientation to the demo schema
+- `/db-explain sales_orders` — plain-English explanation of the orders table
+- `/db-explain column: sales_customers.deleted_at` — understand the soft-delete pattern
+- `/db-profile sales_order_items` — statistical profile of the line items table
+- `/db-joins sales_orders sales_customers hr_employees` — discover all join paths
+- `"What are the known gotchas in this database?"` — natural language also works
 
 ---
 
@@ -208,5 +220,6 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 | `ModuleNotFoundError: yaml` | PyYAML not installed | `pip install pyyaml` |
 | `No active connection found` | `active.yaml` missing | Follow Part 2c |
 | Safety hook blocking safe queries | False positive on keyword in command | Check the query for reserved words in non-SQL context; file an issue |
+| `/db-orient` not recognized | Skill not installed globally | Re-run the `cp install/skills/...` commands in Part 1a |
 | Cost gate not triggering | Dialect not Oracle/Athena | Expected — SQLite has no cost gate |
 | Wrong SQL dialect | Dialect mismatch | Check `type:` in `active.yaml` matches your DB |

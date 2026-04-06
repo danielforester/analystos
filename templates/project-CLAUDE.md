@@ -43,15 +43,15 @@ At the start of every session, do the following silently (no need to narrate eac
 
 | Command | What it does |
 |---|---|
-| `/db-orient` | Structured orientation to a schema *(Sprint 2)* |
-| `/db-profile` | Statistical profile of a table or column *(Sprint 2)* |
-| `/db-explain` | Plain-English explanation of a table/view/column *(Sprint 2)* |
+| `/db-orient` | Structured orientation to a schema |
+| `/db-explain` | Plain-English explanation of a table, view, column, or query |
+| `/db-profile` | Statistical profile of a table or column |
+| `/db-joins` | Discover and document join paths between tables |
+| `/db-status` | Show active connection and KB state |
 | `/db-query` | Natural-language → SQL with safety + cost check *(Sprint 3)* |
-| `/db-joins` | Discover join paths between tables *(Sprint 3)* |
 | `/db-gotchas` | Surface known issues from the KB *(Sprint 3)* |
 | `/db-document` | Draft or update a data dictionary entry *(Sprint 4)* |
 | `/db-capture` | Save a query to the KB *(Sprint 4)* |
-| `/db-status` | Show active connection and KB state *(Sprint 2)* |
 
 ---
 
