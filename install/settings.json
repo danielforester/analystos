@@ -1,0 +1,33 @@
+{
+  "_comment": "DB Analyst Framework — hook registration for ~/.claude/settings.json",
+  "_instructions": [
+    "Merge the 'hooks' block below into your existing ~/.claude/settings.json.",
+    "If you already have hooks configured, add these entries to the existing arrays.",
+    "Adjust the python path if needed (use 'python3' on some systems)."
+  ],
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "_comment": "Safety hook — blocks DDL/DML SQL before execution",
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/hooks/db-safety.py"
+          }
+        ]
+      },
+      {
+        "_comment": "Cost gate — prompts for confirmation before expensive queries on Oracle/Athena",
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/hooks/db-cost-gate.py"
+          }
+        ]
+      }
+    ]
+  }
+}

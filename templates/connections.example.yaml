@@ -1,0 +1,108 @@
+# DB Analyst Framework — Connection Profiles
+# Copy this file to .claude/db-connections/active.yaml and fill in your values.
+# active.yaml is gitignored — never commit credentials.
+#
+# Reference environment variables for all secrets; never paste passwords here.
+# Set env vars in your shell profile or a .env file (also gitignored).
+
+# ── Active connection ────────────────────────────────────────────────────────
+# Set this to the `name` of whichever connection below you want Claude to use.
+active: demo
+
+# ── Connection profiles ──────────────────────────────────────────────────────
+connections:
+
+  # ---------------------------------------------------------------------------
+  # SQLite — local file database, no credentials required
+  # Great for demos and testing the framework without cloud access.
+  # ---------------------------------------------------------------------------
+  - name: demo
+    type: sqlite
+    display_name: "Demo Database (SQLite)"
+    read_only: true               # SQLite connections open in read-only mode
+
+    sqlite:
+      path: ./demo/demo.db        # Relative to the project root, or use absolute path
+
+    # SQLite has no network cost — thresholds are not applicable.
+    cost_thresholds: ~
+
+  # ---------------------------------------------------------------------------
+  # Oracle — typical on-prem or cloud Oracle DB
+  # ---------------------------------------------------------------------------
+  - name: oracle-prod
+    type: oracle
+    display_name: "Production Oracle"
+    read_only: true
+
+    oracle:
+      host: db.example.com
+      port: 1521
+      service_name: ORCL           # Or use sid: instead of service_name:
+      user_env: ORACLE_USER        # Name of the env var holding the username
+      password_env: ORACLE_PASSWORD  # Name of the env var holding the password
+      schema_scope:                # Limit introspection to these schemas (leave empty for all accessible)
+        - SALES
+        - HR
+      # Optional: use a wallet/TNS alias instead of host+port
+      # tns_alias: MY_DB_ALIAS
+      # wallet_location: /path/to/wallet
+
+    cost_thresholds:
+      warn_rows: 5000000           # Warn when EXPLAIN PLAN estimates > 5M rows
+
+  # ---------------------------------------------------------------------------
+  # AWS Athena — serverless SQL over S3
+  # ---------------------------------------------------------------------------
+  - name: athena-analytics
+    type: athena
+    display_name: "Analytics Athena (us-east-1)"
+    read_only: true
+
+    athena:
+      region: us-east-1
+      database: analytics          # Default Glue/Athena database
+      s3_output_location: s3://my-bucket/athena-results/
+      workgroup: primary           # Athena workgroup (controls per-query data limits)
+      aws_profile_env: AWS_PROFILE  # Name of the env var holding the AWS profile name
+      # Alternatively, use key-based auth:
+      # aws_access_key_id_env: AWS_ACCESS_KEY_ID
+      # aws_secret_access_key_env: AWS_SECRET_ACCESS_KEY
+
+    cost_thresholds:
+      warn_bytes: 1073741824       # Warn when EXPLAIN estimates > 1 GB scanned (1 * 1024^3)
+      # Athena charges ~$5/TB scanned. 1 GB = ~$0.005.
+
+  # ---------------------------------------------------------------------------
+  # Snowflake — stub (Sprint 3+)
+  # ---------------------------------------------------------------------------
+  # - name: snowflake-dw
+  #   type: snowflake
+  #   display_name: "Data Warehouse (Snowflake)"
+  #   read_only: true
+  #   snowflake:
+  #     account: myorg-myaccount
+  #     warehouse: ANALYST_WH
+  #     database: ANALYTICS
+  #     schema: PUBLIC
+  #     user_env: SNOWFLAKE_USER
+  #     password_env: SNOWFLAKE_PASSWORD
+  #     role: ANALYST
+  #   cost_thresholds:
+  #     warn_rows: 10000000        # Snowflake cost correlates with rows scanned + compute time
+
+  # ---------------------------------------------------------------------------
+  # Salesforce — stub (Sprint 3+)
+  # ---------------------------------------------------------------------------
+  # - name: salesforce-prod
+  #   type: salesforce
+  #   display_name: "Salesforce Production"
+  #   read_only: true
+  #   salesforce:
+  #     instance_url_env: SF_INSTANCE_URL   # e.g. https://myorg.my.salesforce.com
+  #     client_id_env: SF_CLIENT_ID
+  #     client_secret_env: SF_CLIENT_SECRET
+  #     username_env: SF_USERNAME
+  #     password_env: SF_PASSWORD
+  #   cost_thresholds:
+  #     warn_records: 50000        # Warn when a query would return > 50k records (API governor risk)

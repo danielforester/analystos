@@ -1,0 +1,30 @@
+# DB Analyst Framework — repo-level gitignore
+
+# Generated SQLite databases (recreate from create-demo-db.sql)
+*.db
+*.sqlite
+*.sqlite3
+
+# Credentials and local connection config
+.env
+.env.*
+*.env
+secrets.yaml
+secrets.json
+
+# Obsidian vault output
+_obsidian-vault/
+
+# OS and editor noise
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/

@@ -1,0 +1,39 @@
+# DB Analyst Framework — .gitignore
+# Place this file at the root of your analyst project repo.
+
+# ── Credentials & active connection config ───────────────────────────────────
+# Never commit connection details or secrets.
+.claude/db-connections/active.yaml
+.env
+.env.*
+*.env
+secrets.yaml
+secrets.json
+
+# ── SQLite database files ────────────────────────────────────────────────────
+# Binary DB files shouldn't be in git. Use create-demo-db.sql to recreate.
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Obsidian vault output (optional feature) ─────────────────────────────────
+_obsidian-vault/
+
+# ── OS and editor noise ──────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# ── What IS committed ────────────────────────────────────────────────────────
+# .claude/db-connections/connections.example.yaml  ← template, safe to commit
+# .claude/db-knowledge/**                          ← the whole knowledge base
+# .claude/CLAUDE.md                               ← project instructions
