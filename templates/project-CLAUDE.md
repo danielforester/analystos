@@ -48,8 +48,8 @@ At the start of every session, do the following silently (no need to narrate eac
 | `/db-profile` | Statistical profile of a table or column |
 | `/db-joins` | Discover and document join paths between tables |
 | `/db-status` | Show active connection and KB state |
-| `/db-query` | Natural-language → SQL with safety + cost check *(Sprint 3)* |
-| `/db-gotchas` | Surface known issues from the KB *(Sprint 3)* |
+| `/db-query` | Natural-language → SQL with safety + cost check |
+| `/db-gotchas` | Surface known issues from the KB |
 | `/db-document` | Draft or update a data dictionary entry *(Sprint 4)* |
 | `/db-capture` | Save a query to the KB *(Sprint 4)* |
 

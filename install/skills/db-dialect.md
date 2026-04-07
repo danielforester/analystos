@@ -1,6 +1,6 @@
 ---
 name: db-dialect
-description: Dialect-aware metadata extraction and syntax reference for Oracle, Athena, and SQLite. Use this skill whenever you need to introspect a database, build dialect-correct SQL, or understand how to estimate query cost.
+description: Dialect-aware metadata extraction and syntax reference for Oracle, Athena, SQLite, Snowflake, and Salesforce SOQL. Use this skill whenever you need to introspect a database, build dialect-correct SQL, or understand how to estimate query cost.
 ---
 
 # DB Dialect Skill
@@ -211,25 +211,164 @@ Parse the output for `Est. Output rows` and estimated data read. The Athena quer
 
 ---
 
-## Snowflake (Stub — Sprint 3+)
+## Snowflake
 
 **Use when:** `type: snowflake` in active connection.
 
-> Snowflake dialect support is not yet implemented. When a user connects to Snowflake:
-> 1. Acknowledge the connection type
-> 2. Inform the user that full Snowflake support is planned for Sprint 3
-> 3. Offer to proceed with manual SQL using Snowflake's `INFORMATION_SCHEMA` if they want to work ahead
+### Metadata Queries
+
+```sql
+-- List all databases accessible to the current role
+SHOW DATABASES;
+
+-- List schemas in a database
+SHOW SCHEMAS IN DATABASE {database};
+
+-- List tables in a schema
+SHOW TABLES IN SCHEMA {database}.{schema};
+
+-- List views in a schema
+SHOW VIEWS IN SCHEMA {database}.{schema};
+
+-- Detailed column info
+SELECT column_name, data_type, is_nullable, column_default, ordinal_position,
+       comment
+FROM {database}.information_schema.columns
+WHERE table_schema = '{SCHEMA}' AND table_name = '{TABLE}'
+ORDER BY ordinal_position;
+
+-- All tables in a schema with row counts
+SELECT table_name, table_type, row_count, bytes, created, last_altered, comment
+FROM {database}.information_schema.tables
+WHERE table_schema = '{SCHEMA}'
+ORDER BY table_name;
+
+-- Primary keys (Snowflake tracks but does not enforce)
+SHOW PRIMARY KEYS IN TABLE {database}.{schema}.{table};
+
+-- Foreign keys (tracked, not enforced)
+SHOW IMPORTED KEYS IN TABLE {database}.{schema}.{table};
+
+-- Sample rows
+SELECT * FROM {database}.{schema}.{table} LIMIT 10;
+
+-- Column stats
+SELECT
+  COUNT(*) AS total_rows,
+  COUNT({column}) AS non_null_count,
+  COUNT(DISTINCT {column}) AS distinct_count,
+  MIN({column}) AS min_val,
+  MAX({column}) AS max_val
+FROM {database}.{schema}.{table};
+```
+
+### Cost Signal — EXPLAIN
+
+```sql
+EXPLAIN {your_query};
+```
+
+Parse the EXPLAIN output for `bytesAssigned` or `partitionsTotal`. Snowflake does not report
+bytes scanned directly in EXPLAIN text — use `row_count` from `information_schema.tables` and
+the `warn_rows` threshold as a proxy. For precise cost monitoring, use Snowflake's
+`QUERY_HISTORY` view after execution:
+
+```sql
+SELECT query_text, bytes_scanned, credits_used_cloud_services, total_elapsed_time
+FROM snowflake.account_usage.query_history
+WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
+ORDER BY start_time DESC
+LIMIT 10;
+```
+
+**Threshold check:** If `information_schema.tables.row_count > warn_rows`, surface a warning
+before executing the full query.
+
+### Notes
+- Always qualify table names: `{database}.{schema}.{table}`
+- `INFORMATION_SCHEMA` is per-database; `SNOWFLAKE.ACCOUNT_USAGE` is org-wide (requires `ACCOUNTADMIN` or specific grants)
+- `SHOW` commands return metadata without scanning data — use freely for introspection
+- Snowflake is case-insensitive for identifiers by default; quoted identifiers are case-sensitive
+- Date/time functions: `CURRENT_TIMESTAMP()`, `DATEADD('day', N, col)`, `DATEDIFF('day', a, b)`, `DATE_TRUNC('month', col)`
+- Semi-structured data: `col:field::type` (colon path), `FLATTEN(INPUT => col)`, `PARSE_JSON(str)`
+- Approximate aggregates: `APPROX_COUNT_DISTINCT(col)`, `APPROX_PERCENTILE(col, 0.5)`
+- Sampling: `SELECT * FROM {table} SAMPLE (1)` — returns ~1% of rows without full scan
+- Warehouse size affects compute cost; always check the active warehouse before running heavy queries
 
 ---
 
-## Salesforce / SOQL (Stub — Sprint 3+)
+## Salesforce / SOQL
 
 **Use when:** `type: salesforce` in active connection.
 
-> Salesforce SOQL support is not yet implemented. When a user connects to Salesforce:
-> 1. Acknowledge the connection type
-> 2. Inform the user that Salesforce support (including `/db-soql`) is planned for Sprint 3
-> 3. Note that Salesforce uses SOQL, not SQL — standard SQL queries will not work
+> Salesforce uses **SOQL** (Salesforce Object Query Language), not SQL. Standard SQL syntax
+> will not work. Apply the `db-soql` skill for full SOQL construction, relationship traversal,
+> and governor limit guidance. This section provides the dialect detection and quick reference
+> needed to route correctly.
+
+### Metadata — describeSObject (not INFORMATION_SCHEMA)
+
+Salesforce metadata is accessed via the REST API, not SQL system tables.
+
+```
+-- List all queryable objects
+GET {instance_url}/services/data/v{api_version}/sobjects/
+
+-- Describe a specific object (fields, types, relationships, picklist values)
+GET {instance_url}/services/data/v{api_version}/sobjects/{ObjectName}/describe/
+```
+
+Key fields from describe response:
+- `fields[].name` — API name (use in SOQL)
+- `fields[].type` — data type (string, reference, picklist, double, datetime, etc.)
+- `fields[].relationshipName` — use this in child-to-parent dot notation
+- `fields[].referenceTo` — which object(s) a reference field points to
+- `fields[].picklistValues` — valid values for picklist fields
+- `childRelationships[].relationshipName` — use in parent-to-child subqueries
+- `childRelationships[].childSObject` — the related child object name
+
+### Quick SOQL Reference
+
+```soql
+-- Basic pattern (SELECT * is not valid; always list fields)
+SELECT Id, Name, CreatedDate
+FROM Account
+WHERE IsDeleted = false
+LIMIT 200
+
+-- Row count estimate (always run before large queries)
+SELECT COUNT()
+FROM {Object}
+WHERE IsDeleted = false AND {your_filters}
+
+-- Child-to-parent relationship (dot notation)
+SELECT Id, Name, Account.Name, Account.Industry
+FROM Contact
+WHERE IsDeleted = false
+
+-- Parent-to-child subquery
+SELECT Id, Name, (SELECT Id, Subject FROM Cases WHERE IsDeleted = false)
+FROM Account
+WHERE IsDeleted = false
+LIMIT 50
+```
+
+### Cost Signal — Record Count
+
+SOQL has no EXPLAIN. Use a `SELECT COUNT()` query with the same WHERE clause to estimate
+rows before running the full query. Compare against `warn_records` in `active.yaml`.
+
+Governor limits:
+- Synchronous queries: **50,000 rows max** per transaction
+- Queries per transaction: 100
+- Non-selective queries on large objects (> 200k records) will time out
+
+### Always-On Rules for Salesforce
+- `IsDeleted = false` — include in every query unless explicitly querying the recycle bin
+- `SELECT *` is a syntax error — always list field names explicitly
+- Relationship names (for joins) come from `describeSObject`, not field names
+- Picklist values must match exactly — wrong values return 0 rows silently
+- For complex SOQL: use the `db-soql` skill
 
 ---
 

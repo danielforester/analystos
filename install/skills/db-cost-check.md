@@ -1,13 +1,13 @@
 ---
 name: db-cost-check
-description: Pre-execution cost estimation for database queries. Use this skill before running any query on Oracle or Athena to estimate rows scanned or bytes scanned, and compare against configured thresholds.
+description: Pre-execution cost estimation for database queries. Use this skill before running any query on Oracle, Athena, Snowflake, or Salesforce to estimate rows/bytes scanned and compare against configured thresholds.
 ---
 
 # DB Cost Check Skill
 
-Use this skill **before executing any SELECT query** on Oracle or Athena. It provides
-dialect-specific cost estimation so analysts can make informed decisions before
-accidentally triggering expensive scans.
+Use this skill **before executing any SELECT query** on Oracle, Athena, Snowflake, or Salesforce.
+It provides dialect-specific cost estimation so analysts can make informed decisions before
+accidentally triggering expensive scans or hitting governor limits.
 
 ---
 
@@ -134,6 +134,117 @@ If the estimate **exceeds** `warn_bytes`:
 
 If within threshold:
 > "✅ Cost estimate looks fine (~{X} GB / ~${Y}, within your {threshold_gb} GB threshold). Proceeding."
+
+---
+
+## Snowflake — Cost Estimation
+
+Snowflake pricing is compute-based (credits per second of warehouse time) rather than
+purely data-volume-based, but bytes scanned is still the best proxy for cost estimation
+before execution.
+
+### Step 1: Check row count from INFORMATION_SCHEMA
+
+```sql
+SELECT row_count, bytes
+FROM {database}.information_schema.tables
+WHERE table_schema = '{SCHEMA}' AND table_name = '{TABLE}';
+```
+
+Use this for the primary table(s) in the query's FROM clause. Compare `row_count`
+against `warn_rows` from `active.yaml`.
+
+### Step 2: Run EXPLAIN (optional, for complex queries)
+
+```sql
+EXPLAIN {your_query};
+```
+
+Parse the JSON output for `"statistics": {"partitionsTotal": N, "bytesAssigned": N}`.
+Note: Snowflake EXPLAIN output is JSON; extract `bytesAssigned` if present.
+
+### Step 3: Report to the analyst
+
+```
+📊 Snowflake Cost Estimate
+━━━━━━━━━━━━━━━━━━━━━━━━━
+Estimated rows (source): {row_count from INFORMATION_SCHEMA, formatted with commas}
+Estimated bytes         : {bytes, formatted as GB if > 1 GB}
+Warehouse               : {warehouse from active.yaml if available}
+Threshold               : {warn_rows from active connection}
+Result                  : {WITHIN THRESHOLD ✅ | EXCEEDS THRESHOLD ⚠️}
+```
+
+If the estimate **exceeds** `warn_rows`:
+> "⚠️ The source table has **{N}** rows, which exceeds your configured threshold of {warn_rows}.
+> Snowflake cost depends on warehouse size and query complexity. Type **\"cost confirmed\"** to
+> proceed, or:
+> - Add WHERE filters to reduce rows scanned
+> - Use `SAMPLE (1)` for exploratory queries (returns ~1% of rows)
+> - Use `APPROX_COUNT_DISTINCT()` instead of exact `COUNT(DISTINCT)` for large aggregations"
+
+### Notes
+- Snowflake caches query results — identical queries within 24 hours are free (no recompute)
+- Clustering keys on large tables can dramatically reduce bytes scanned; check `SHOW TABLES` for `clustering_key`
+- Virtual warehouse size affects speed and credit burn — `XSMALL` is fine for most analytical queries
+
+---
+
+## Salesforce — Cost Estimation (Governor Limit Check)
+
+Salesforce does not have a query cost in dollars. The risk is hitting **governor limits**
+that cause hard errors. The cost check for Salesforce is a pre-flight record count.
+
+### Step 1: Count records with the same filters
+
+```soql
+SELECT COUNT()
+FROM {Object}
+WHERE IsDeleted = false AND {same_filters_as_full_query}
+```
+
+This is a lightweight aggregate query — it does not return row data and is fast even on large objects.
+
+### Step 2: Interpret
+
+Compare the COUNT() result against `warn_records` from `active.yaml` (default: 50,000).
+
+| Count | Verdict |
+|-------|---------|
+| < warn_records | Safe to run synchronously |
+| ≥ warn_records but < 50,000 | Warn — close to limit |
+| ≥ 50,000 | Block — exceeds synchronous SOQL row limit |
+
+### Step 3: Report to the analyst
+
+```
+📊 Salesforce Governor Limit Check
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Estimated record count: {N}
+Synchronous row limit : 50,000
+Configured threshold  : {warn_records from active connection}
+Result                : {WITHIN THRESHOLD ✅ | APPROACHING LIMIT ⚠️ | EXCEEDS LIMIT 🚫}
+```
+
+If count **≥ 50,000**:
+> "🚫 This query would return approximately **{N}** records, which exceeds Salesforce's
+> synchronous SOQL row limit of 50,000. The query will fail with a `QUERY_ROW_LIMIT_EXCEEDED`
+> error. To proceed:
+> - Add more selective WHERE filters (indexed fields: `Id`, `CreatedDate`, `OwnerId`, `RecordTypeId`)
+> - Use date range pagination: query one time period at a time
+> - For full exports, use the Bulk API or Data Loader (outside Claude Code scope)"
+
+If count is **between warn_records and 50,000**:
+> "⚠️ This query will return approximately **{N}** records, approaching the 50,000 synchronous
+> limit. Type **\"cost confirmed\"** to proceed."
+
+If **within** `warn_records`:
+> "✅ Record count looks fine ({N} records, within your {warn_records} threshold). Proceeding."
+
+### Notes
+- Non-selective WHERE clauses (no indexed field) on large objects may time out even before hitting the row limit
+- `SELECT COUNT()` itself is not subject to the row limit — it always returns a single integer
+- For Salesforce, always verify picklist values in WHERE clauses are valid before running the count
 
 ---
 
