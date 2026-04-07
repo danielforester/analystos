@@ -28,6 +28,28 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "_comment": "Doc prompt — offers to save /db-explain or /db-orient results to the KB",
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/hooks/db-doc-prompt.py"
+          }
+        ]
+      },
+      {
+        "_comment": "Capture prompt — offers to save significant query results to the KB",
+        "matcher": ".*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/hooks/db-capture-prompt.py"
+          }
+        ]
+      }
     ]
   }
 }
