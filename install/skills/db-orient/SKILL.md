@@ -15,7 +15,7 @@ allowed-tools:
 
 Use this command when an analyst is new to a database and needs a structured orientation.
 It synthesizes introspection metadata and sample data into a navigable overview matching
-the format of `_schema-overview-template.md`.
+the format of `.claude/example_schema/_schema-overview-template.md`.
 
 ---
 
@@ -89,7 +89,7 @@ If it does not exist: proceed silently.
 
 ## Step 5: Synthesize Orientation
 
-Produce a structured orientation document following the `_schema-overview-template.md` format.
+Produce a structured orientation document following the `.claude/example_schema/_schema-overview-template.md` format.
 Include all sections below. Fill in what you can from introspection; note gaps explicitly rather than omitting sections.
 
 ---

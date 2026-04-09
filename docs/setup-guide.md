@@ -1,6 +1,6 @@
 # AnalystOS — Setup Guide
 
-This guide walks you through installing the DB Analyst Framework into Claude Code
+This guide walks you through installing AnalystOS into Claude Code
 and configuring it for your first project.
 
 ---
@@ -12,7 +12,8 @@ and configuring it for your first project.
 - `pip install pyyaml` (required by the cost-gate hook for Oracle/Athena connections)
 - For Oracle: Oracle client libraries + `cx_Oracle` or `python-oracledb`
 - For Athena: AWS CLI configured, `boto3` installed
-- For SQLite demo: just `sqlite3` (included with Python and most OS installs)
+- For SQLite demo: no extra prerequisites — `starter-project` ships with a pre-built demo database
+- For MCP-based connections:  relevant MCP installed (or built! :-) ...)
 
 ---
 
@@ -104,17 +105,17 @@ echo '{"tool":"bash","input":{"query":"SELECT * FROM users"}}' \
 
 ---
 
-## Part 2 — Project Setup (using sample-project)
+## Part 2 — Project Setup (using starter-project)
 
-The fastest way to set up a new analyst project is to copy `sample-project/` from the
+The fastest way to set up a new analyst project is to copy `starter-project/` from the
 analystos repo. It is a complete, ready-to-run project pre-configured for the bundled
 SQLite demo database.
 
-### 2a. Copy sample-project
+### 2a. Copy starter-project
 
 ```bash
 # From the analystos repo root — copy to wherever your project lives
-cp -r sample-project/ ~/my-analyst-project/
+cp -r starter-project/ ~/my-analyst-project/
 
 cd ~/my-analyst-project/
 ```
@@ -160,13 +161,7 @@ ORACLE_PASSWORD=my_password
 
 ## Part 3 — Demo Database Quickstart
 
-`sample-project` ships with a pre-built SQLite demo database — no credentials, no cloud access required.
-
-```bash
-cp -r sample-project/ ~/my-demo-project/
-cd ~/my-demo-project/
-claude
-```
+Once you've completed Part 2a (copy `starter-project/` and open Claude Code inside it), the demo is ready — no credentials or cloud access required.
 
 Claude will greet you with: `Connected to AnalystOS Demo Database (sqlite). KB loaded...`
 
@@ -180,8 +175,7 @@ Try these starter commands:
 - `/db-joins sales_orders sales_customers hr_employees` — discover all join paths
 - `"What are the known gotchas in this database?"` — natural language also works
 
-The demo database schema is documented in
-`sample-project/.claude/db-connections/demo-db/README.md`.
+The demo database schema is documented in `.claude/db-connections/demo-db/README.md`.
 
 ---
 
@@ -294,7 +288,7 @@ Repeat for any skill that runs queries (`db-query`, `db-profile`, `db-joins`, et
 |---|---|---|
 | Hooks not firing | Hook not registered in `settings.json` | Re-check Part 1b; restart Claude Code |
 | `ModuleNotFoundError: yaml` | PyYAML not installed | `pip install pyyaml` |
-| `No active connection found` | `active.yaml` missing | Follow Part 2c |
+| `No active connection found` | `active.yaml` missing | Follow Part 2b |
 | Safety hook blocking safe queries | False positive on keyword in command | Check the query for reserved words in non-SQL context; file an issue |
 | `/db-orient` not recognized | Skill not installed globally | Re-run the `cp -r install/skills/db-orient ~/.claude/skills/` command in Part 1a |
 | Cost gate not triggering | Dialect not Oracle/Athena | Expected — SQLite has no cost gate |

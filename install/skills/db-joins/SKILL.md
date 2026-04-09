@@ -143,7 +143,7 @@ Determine the recommended join type:
 ## Step 6: Output — Structured Relationship Blocks
 
 Produce one relationship block per join path, following the format from
-`_schema-overview-template.md` Section 3.
+`.claude/example_schema/_schema-overview-template.md` Section 3.
 
 ```
 ## Join Paths: {TABLE_A} ↔ {TABLE_B}

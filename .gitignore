@@ -4,8 +4,8 @@
 *.db
 *.sqlite
 *.sqlite3
-# Exception: the bundled demo database is committed so sample-project works out of the box
-!sample-project/.claude/db-connections/demo-db/demo.db
+# Exception: the bundled demo database is committed so starter-project works out of the box
+!starter-project/.claude/db-connections/demo-db/demo.db
 
 # Credentials and local connection config
 .env

@@ -9,14 +9,14 @@ This is the **source repository** for AnalystOS — a DB analyst framework and C
 **Sprint 1 (Foundation + Safety) is complete.** The repo now contains installable skills, hooks, per-project templates, and a working demo database. Slash commands (`/db-orient`, etc.) are planned for Sprint 2+.
 
 Key reference documents:
-- `analystos-design.md` — Complete vision, principles, component specs
-- `analystos-tasks.md` — Task breakdown and sprint sequencing
+- `docs/analystos-design.md` — Complete vision, principles, component specs
+- `docs/analystos-tasks.md` — Task breakdown and sprint sequencing
 - `docs/setup-guide.md` — **Start here** to install and run the framework
 
 Key files:
-- `analystos-design.md` — Complete vision, principles, component specs, and knowledge base structure
-- `analystos-tasks.md` — Task breakdown and sprint sequencing (Sprints 1–4)
-- `_schema-overview-template.md` — Template for future per-schema data dictionary docs
+- `docs/analystos-design.md` — Complete vision, principles, component specs, and knowledge base structure
+- `docs/analystos-tasks.md` — Task breakdown and sprint sequencing (Sprints 1–4)
+- `starter-project/.claude/example_schema/` — Template files for new schemas and tables (kept in `.claude/` so they're not confused with real KB content)
 
 ## Core Design Principles
 
@@ -81,7 +81,7 @@ install/              # Copy to ~/.claude/ — global skills and hooks
     db-cost-gate.py   # Pre-tool-use: gates expensive queries, asks for confirmation
   settings.json       # Hook registration template (merge into ~/.claude/settings.json)
 
-sample-project/       # Ready-to-use project — copy this folder to start immediately
+starter-project/       # Ready-to-use project — copy this folder to start immediately
   .claude/
     CLAUDE.md                        # Project-level Claude instructions
     db-connections/
@@ -90,13 +90,14 @@ sample-project/       # Ready-to-use project — copy this folder to start immed
       demo-db/                       # Bundled SQLite demo database
         create-demo-db.sql
         demo.db
-  db-knowledge/                      # Blank KB scaffold (README, _gotchas, _open-questions)
     example_schema/
-      _table-template.md             # Copy this when documenting a new table
+      _schema-overview-template.md   # Copy → db-knowledge/{schema}/_schema-overview.md
+      _table-template.md             # Copy → db-knowledge/{schema}/{table}.md
+  db-knowledge/                      # Blank KB scaffold (README, _gotchas, _open-questions)
   .gitignore                         # Protects credentials in real projects
 
 docs/
-  setup-guide.md      # Full install walkthrough (global install + using sample-project)
+  setup-guide.md      # Full install walkthrough (global install + using starter-project)
 
 scripts/
   kb-to-obsidian.py   # Convert KB to an Obsidian-compatible vault
@@ -112,22 +113,22 @@ scripts/
 
 ## Non-Obvious Implementation Notes
 
-### `sample-project/.claude/db-connections/active.yaml` — gitignore behavior
+### `starter-project/.claude/db-connections/active.yaml` — gitignore behavior
 
 This file is committed in the source repo via `git add -f`, bypassing the
-`sample-project/.gitignore` rule that excludes `.claude/db-connections/active.yaml`.
+`starter-project/.gitignore` rule that excludes `.claude/db-connections/active.yaml`.
 
 **Why it's force-added here:** The demo `active.yaml` contains no real credentials — it
 just points to the bundled `demo.db`. It's safe and necessary to commit so the
-sample-project works out of the box.
+starter-project works out of the box.
 
-**What happens when an analyst copies sample-project:** If they initialize their own git
+**What happens when an analyst copies starter-project:** If they initialize their own git
 repo in the copied folder, git will NOT track `active.yaml` (the gitignore applies).
 This is correct — their `active.yaml` will eventually hold real credentials. If they
 need to track a non-sensitive `active.yaml`, they use `git add -f` explicitly.
 
 **Maintenance:** If `active.yaml` is ever regenerated in this source repo, stage it with
-`git add -f sample-project/.claude/db-connections/active.yaml`.
+`git add -f starter-project/.claude/db-connections/active.yaml`.
 
 ---
 
