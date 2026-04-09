@@ -46,7 +46,7 @@ Also collect all connection names and types from `connections[]` for Step 4 outp
 **If `active.yaml` does not exist:**
 
 ```
-DB Analyst Status
+AnalystOS Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Connection  : Not configured
 
@@ -94,7 +94,7 @@ Format the cost threshold into a human-readable string:
 Print the status block in this exact format:
 
 ```
-DB Analyst Status
+AnalystOS Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Connection    : {display_name} ({type})
 Scope         : {schema_scope list joined by ", " | "all accessible schemas" | path for SQLite}
@@ -131,7 +131,7 @@ If only one connection is configured, omit the "Configured Connections" block.
 ### Example 1 — SQLite demo, single connection, empty KB
 
 ```
-DB Analyst Status
+AnalystOS Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Connection    : Demo Database (sqlite)
 Scope         : ./demo/demo.db
@@ -156,7 +156,7 @@ Run /db-orient to start exploring, or /db-explain {table} for a specific table.
 ### Example 2 — Multiple connections, Oracle active, populated KB
 
 ```
-DB Analyst Status
+AnalystOS Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Connection    : Production Oracle (oracle)
 Scope         : SALES, HR
@@ -187,7 +187,7 @@ Run /db-orient to start exploring, or /db-explain {table} for a specific table.
 ### Example 3 — Athena with threshold
 
 ```
-DB Analyst Status
+AnalystOS Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Connection    : Analytics Athena (athena)
 Scope         : analytics

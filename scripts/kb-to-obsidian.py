@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-kb-to-obsidian.py — Obsidian vault conversion for the DB Analyst Framework KB.
+kb-to-obsidian.py — Obsidian vault conversion for the AnalystOS knowledge base.
 
 Converts a standard markdown knowledge base (as produced by /db-document, /db-orient,
 and /db-capture) into an Obsidian-compatible vault by:
@@ -323,7 +323,7 @@ def watch_loop(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Convert a DB Analyst Framework KB to an Obsidian-compatible vault.",
+        description="Convert an AnalystOS knowledge base to an Obsidian-compatible vault.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog=__doc__,
     )

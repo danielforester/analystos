@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-db-capture-prompt — Post-tool-use hook for the DB Analyst Framework.
+db-capture-prompt — Post-tool-use hook for AnalystOS.
 
 After a tool call that returned a significant query result (non-trivial row count,
 large result set, or analyst-added context), offers to save the query to the

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-db-safety — Pre-tool-use hook for the DB Analyst Framework.
+db-safety — Pre-tool-use hook for AnalystOS.
 
 Scans tool inputs for DDL/DML SQL keywords and blocks execution
 unless the user has explicitly typed an override phrase.

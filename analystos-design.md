@@ -1,4 +1,4 @@
-# DB Analyst Framework for Claude Code
+# AnalystOS
 ## Project Design Document
 
 **Version:** 0.1 (Draft)

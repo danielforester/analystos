@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-db-doc-prompt — Post-tool-use hook for the DB Analyst Framework.
+db-doc-prompt — Post-tool-use hook for AnalystOS.
 
 After a tool call that produced documentation-worthy output (a /db-explain or
 /db-orient result), offers to persist the explanation as a KB markdown entry.

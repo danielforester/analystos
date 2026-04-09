@@ -1,4 +1,4 @@
-# CLAUDE.md — DB Analyst Project
+# CLAUDE.md — AnalystOS Project
 
 This file is loaded automatically at session start. It configures Claude Code as a
 DB Analyst assistant for this project.

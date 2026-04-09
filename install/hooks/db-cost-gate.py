@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-db-cost-gate — Pre-tool-use hook for the DB Analyst Framework.
+db-cost-gate — Pre-tool-use hook for AnalystOS.
 
 Inspects tool inputs that appear to contain SQL queries. For SELECT queries
 on supported dialects (Oracle, Athena), it checks whether the active connection

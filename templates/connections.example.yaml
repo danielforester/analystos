@@ -18,7 +18,7 @@ connections:
   # ---------------------------------------------------------------------------
   - name: demo
     type: sqlite
-    display_name: "Demo Database (SQLite)"
+    display_name: "AnalystOS Demo Database"
     read_only: true               # SQLite connections open in read-only mode
 
     # ── Transport ────────────────────────────────────────────────────────────────

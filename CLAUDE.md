@@ -4,18 +4,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What This Repository Is
 
-This is the **source repository** for the DB Analyst Framework — a Claude Code extension that turns Claude into a senior data engineer assistant for SQL analysts.
+This is the **source repository** for AnalystOS — a DB analyst framework and Claude Code extension that turns Claude into a senior data engineer assistant for SQL analysts.
 
 **Sprint 1 (Foundation + Safety) is complete.** The repo now contains installable skills, hooks, per-project templates, and a working demo database. Slash commands (`/db-orient`, etc.) are planned for Sprint 2+.
 
 Key reference documents:
-- `db-analyst-framework-design.md` — Complete vision, principles, component specs
-- `db-analyst-framework-tasks.md` — Task breakdown and sprint sequencing
+- `analystos-design.md` — Complete vision, principles, component specs
+- `analystos-tasks.md` — Task breakdown and sprint sequencing
 - `docs/setup-guide.md` — **Start here** to install and run the framework
 
 Key files:
-- `db-analyst-framework-design.md` — Complete vision, principles, component specs, and knowledge base structure
-- `db-analyst-framework-tasks.md` — Task breakdown and sprint sequencing (Sprints 1–4)
+- `analystos-design.md` — Complete vision, principles, component specs, and knowledge base structure
+- `analystos-tasks.md` — Task breakdown and sprint sequencing (Sprints 1–4)
 - `_schema-overview-template.md` — Template for future per-schema data dictionary docs
 
 ## Core Design Principles

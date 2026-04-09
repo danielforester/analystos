@@ -7,7 +7,7 @@ active: demo
 connections:
   - name: demo
     type: sqlite
-    display_name: "DB Analyst Demo Database"
+    display_name: "AnalystOS Demo Database"
     read_only: true
 
     sqlite:

@@ -1,4 +1,4 @@
-# DB Analyst Framework — Setup Guide
+# AnalystOS — Setup Guide
 
 This guide walks you through installing the DB Analyst Framework into Claude Code
 and configuring it for your first project.
@@ -183,7 +183,7 @@ cd my-demo-project
 claude
 ```
 
-Claude will greet you with: `Connected to DB Analyst Demo Database (sqlite). KB loaded...`
+Claude will greet you with: `Connected to AnalystOS Demo Database (sqlite). KB loaded...`
 
 Try these starter commands:
 - `/db-status` — confirm the connection is loaded, see the KB state, and list all configured connections

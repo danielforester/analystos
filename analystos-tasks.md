@@ -1,4 +1,4 @@
-# DB Analyst Framework — Task Breakdown
+# AnalystOS — Task Breakdown
 
 **Version:** 0.1
 **Last Updated:** 2026-04-06
