@@ -77,7 +77,7 @@ Use the sample output to:
 
 ## Step 4: Check Existing KB Entry
 
-Check whether `.claude/db-knowledge/{schema}/_schema-overview.md` exists.
+Check whether `db-knowledge/{schema}/_schema-overview.md` exists.
 
 If it exists:
 > "Note: A schema overview already exists in the knowledge base (last updated: {date from file header, or unknown}).
@@ -242,17 +242,17 @@ Scan column names across all tables for these patterns:
 
 After presenting the orientation, always ask:
 
-> "Save this orientation to `.claude/db-knowledge/{schema}/_schema-overview.md`?
+> "Save this orientation to `db-knowledge/{schema}/_schema-overview.md`?
 > (y = save, n = skip, update = overwrite existing)"
 
 If the user says **y** or **save**:
-1. Create the directory `.claude/db-knowledge/{schema}/` if it does not exist
+1. Create the directory `db-knowledge/{schema}/` if it does not exist
 2. Write the orientation document (without the markdown code fence wrappers) to `_schema-overview.md`
-3. Confirm: "Saved to `.claude/db-knowledge/{schema}/_schema-overview.md`."
+3. Confirm: "Saved to `db-knowledge/{schema}/_schema-overview.md`."
 
 If an existing file was present and the user says **update**:
 - Overwrite the existing file
-- Confirm: "Updated `.claude/db-knowledge/{schema}/_schema-overview.md`."
+- Confirm: "Updated `db-knowledge/{schema}/_schema-overview.md`."
 
 If the user says **n** or **skip**: acknowledge and move on.
 

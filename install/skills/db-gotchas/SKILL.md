@@ -49,18 +49,18 @@ Check the following KB locations. For a table target, check all three. For schem
 check the first two. For no argument, scan all.
 
 ### 2a. Cross-schema gotchas
-File: `.claude/db-knowledge/_gotchas.md`
+File: `db-knowledge/_gotchas.md`
 
 Load and filter for entries that mention the target table or schema, or that are marked
 as "Affects: All" / cross-schema.
 
 ### 2b. Schema-level gotchas
-File: `.claude/db-knowledge/{schema}/_schema-overview.md`, **Section 6 (Schema-Level Gotchas)**
+File: `db-knowledge/{schema}/_schema-overview.md`, **Section 6 (Schema-Level Gotchas)**
 
 If the file exists, extract the gotcha list from Section 6.
 
 ### 2c. Per-table gotchas
-File: `.claude/db-knowledge/{schema}/{table_name}.md`, **Gotchas section**
+File: `db-knowledge/{schema}/{table_name}.md`, **Gotchas section**
 
 If the file exists, extract the Gotchas section.
 
@@ -154,13 +154,13 @@ Source: live introspection (not yet in KB)
 After presenting inferred gotchas, ask:
 
 > "Add confirmed gotchas to the knowledge base? I can append them to
-> `.claude/db-knowledge/_gotchas.md` or `.claude/db-knowledge/{schema}/{table}.md`.
+> `db-knowledge/_gotchas.md` or `db-knowledge/{schema}/{table}.md`.
 > Which ones are correct? (list numbers, or 'all' / 'none')"
 
 If the analyst confirms one or more:
-- For table-specific gotchas: append to `.claude/db-knowledge/{schema}/{table}.md`
+- For table-specific gotchas: append to `db-knowledge/{schema}/{table}.md`
   under the **Gotchas** section (create the file if it doesn't exist using the KB entry format)
-- For cross-schema patterns: append to `.claude/db-knowledge/_gotchas.md`
+- For cross-schema patterns: append to `db-knowledge/_gotchas.md`
 - Confirm: "Saved {N} gotcha(s) to the knowledge base."
 
 ---

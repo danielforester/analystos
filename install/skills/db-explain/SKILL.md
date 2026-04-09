@@ -50,10 +50,10 @@ If no target is provided after `/db-explain`, ask:
 
 ## Step 2: Check the Knowledge Base
 
-Before running any database queries, check `.claude/db-knowledge/` for existing documentation:
+Before running any database queries, check `db-knowledge/` for existing documentation:
 
-- For a table: look for `.claude/db-knowledge/{schema}/{table_name}.md`
-- For a column: look for `.claude/db-knowledge/{schema}/{table_name}.md` and scan for a column entry
+- For a table: look for `db-knowledge/{schema}/{table_name}.md`
+- For a column: look for `db-knowledge/{schema}/{table_name}.md` and scan for a column entry
 - For a query: no KB check needed
 
 If an existing KB entry is found:
@@ -230,15 +230,15 @@ If no risks detected: "No obvious risks detected in this query."
 
 After explaining a **table or view**, always ask:
 
-> "Save this explanation to `.claude/db-knowledge/{schema}/{table_name}.md`? (y/n)"
+> "Save this explanation to `db-knowledge/{schema}/{table_name}.md`? (y/n)"
 
 If yes:
-1. Create `.claude/db-knowledge/{schema}/` directory if it doesn't exist
+1. Create `db-knowledge/{schema}/` directory if it doesn't exist
 2. Write the explanation (formatted as a KB entry — see format below) to `{table_name}.md`
-3. Confirm: "Saved to `.claude/db-knowledge/{schema}/{table_name}.md`."
+3. Confirm: "Saved to `db-knowledge/{schema}/{table_name}.md`."
 
 After explaining a **column**, ask:
-> "Add this column explanation to `.claude/db-knowledge/{schema}/{table_name}.md`? (y/n)"
+> "Add this column explanation to `db-knowledge/{schema}/{table_name}.md`? (y/n)"
 
 If yes:
 - If the file exists, append the column entry to the appropriate section

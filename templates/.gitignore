@@ -35,5 +35,5 @@ venv/
 
 # ── What IS committed ────────────────────────────────────────────────────────
 # .claude/db-connections/connections.example.yaml  ← template, safe to commit
-# .claude/db-knowledge/**                          ← the whole knowledge base
+# db-knowledge/**                                  ← the whole knowledge base
 # .claude/CLAUDE.md                               ← project instructions

@@ -111,7 +111,7 @@ Skills are reusable prompt libraries invoked internally by slash commands or hoo
 
 ### 5.4 Knowledge Base Structure
 
-All knowledge lives in `.claude/db-knowledge/` as plain markdown files. This directory is the durable, shareable, version-controllable product of the framework.
+All knowledge lives in `db-knowledge/` as plain markdown files. This directory is the durable, shareable, version-controllable product of the framework.
 
 ```
 .claude/
@@ -181,7 +181,7 @@ The project-level `CLAUDE.md` file is extended with a database context block tha
 ## Database Context
 
 Active connection: See `.claude/db-connections/active.yaml`
-Knowledge base: `.claude/db-knowledge/`
+Knowledge base: `db-knowledge/`
 
 When working on database tasks:
 1. Always confirm connection is read-only before executing queries
@@ -217,12 +217,12 @@ When working on database tasks:
 ## 7. Collaboration & Sharing Model
 
 ### Phase 1: Shared Drive (Current)
-- `.claude/db-knowledge/` is a folder shared via network drive or cloud storage (e.g., SharePoint, Google Drive)
+- `db-knowledge/` is a folder shared via network drive or cloud storage (e.g., SharePoint, Google Drive)
 - Analysts work from local copies and manually sync changes
 - Risk of edit conflicts is low given mostly-additive, file-per-table structure
 
 ### Phase 2: Git (Target)
-- `.claude/db-knowledge/` becomes a git repository (or subdirectory of a larger monorepo)
+- `db-knowledge/` becomes a git repository (or subdirectory of a larger monorepo)
 - PRs used to review new table documentation and canonical query additions
 - CI can validate markdown format and flag undocumented tables
 - Knowledge base becomes auditable and diffable over time
@@ -273,7 +273,7 @@ A standalone Python script (`scripts/kb-to-obsidian.py`) handles the translation
 
 ```bash
 python scripts/kb-to-obsidian.py \
-  --source  .claude/db-knowledge/ \
+  --source  db-knowledge/ \
   --output  .claude/_obsidian-vault/ \
   --frontmatter \        # inject YAML frontmatter
   --callouts \           # convert ⚠️ patterns to Obsidian callouts
@@ -347,13 +347,13 @@ The graph view reflects *link presence*, not *relationship semantics*. It shows 
 | `.claude/CLAUDE.md` | Claude Code project instructions; loads DB context at session start |
 | `.claude/db-connections/active.yaml` | Active connection profile (gitignored) |
 | `.claude/db-connections/connections.example.yaml` | Template for connection profiles |
-| `.claude/db-knowledge/README.md` | Index of all documented schemas |
-| `.claude/db-knowledge/_gotchas.md` | Cross-schema warnings |
-| `.claude/db-knowledge/_open-questions.md` | Unresolved questions |
-| `.claude/db-knowledge/{schema}/_schema-overview.md` | Schema-level orientation document |
-| `.claude/db-knowledge/{schema}/{table}.md` | Per-table data dictionary entry |
-| `.claude/db-knowledge/{schema}/_queries/{name}.sql` | Named canonical queries |
-| `.claude/db-knowledge/_external-docs/` | Placeholder for future external doc ingestion |
+| `db-knowledge/README.md` | Index of all documented schemas |
+| `db-knowledge/_gotchas.md` | Cross-schema warnings |
+| `db-knowledge/_open-questions.md` | Unresolved questions |
+| `db-knowledge/{schema}/_schema-overview.md` | Schema-level orientation document |
+| `db-knowledge/{schema}/{table}.md` | Per-table data dictionary entry |
+| `db-knowledge/{schema}/_queries/{name}.sql` | Named canonical queries |
+| `db-knowledge/_external-docs/` | Placeholder for future external doc ingestion |
 
 ---
 

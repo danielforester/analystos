@@ -112,7 +112,7 @@ Repeat these steps for each analyst project or repository.
 
 ```bash
 mkdir -p .claude/db-connections
-mkdir -p .claude/db-knowledge
+mkdir -p db-knowledge
 ```
 
 ### 2b. Copy the project templates
@@ -121,9 +121,9 @@ mkdir -p .claude/db-knowledge
 # From the analystos repo root:
 cp templates/project-CLAUDE.md         .claude/CLAUDE.md
 cp templates/connections.example.yaml   .claude/db-connections/connections.example.yaml
-cp templates/db-knowledge/README.md     .claude/db-knowledge/README.md
-cp templates/db-knowledge/_gotchas.md   .claude/db-knowledge/_gotchas.md
-cp templates/db-knowledge/_open-questions.md .claude/db-knowledge/_open-questions.md
+cp templates/db-knowledge/README.md     db-knowledge/README.md
+cp templates/db-knowledge/_gotchas.md   db-knowledge/_gotchas.md
+cp templates/db-knowledge/_open-questions.md db-knowledge/_open-questions.md
 cp templates/.gitignore                 .gitignore   # or merge into existing
 ```
 
@@ -172,10 +172,10 @@ sqlite3 demo/demo.db < demo/create-demo-db.sql
 
 # 2. Set up the demo project structure
 mkdir -p my-demo-project/.claude/db-connections
-mkdir -p my-demo-project/.claude/db-knowledge
+mkdir -p my-demo-project/db-knowledge
 
 cp demo/demo-connections.yaml my-demo-project/.claude/db-connections/active.yaml
-cp -r demo/demo-knowledge/    my-demo-project/.claude/db-knowledge/
+cp -r demo/demo-knowledge/    my-demo-project/db-knowledge/
 cp templates/project-CLAUDE.md my-demo-project/.claude/CLAUDE.md
 
 # 3. Open Claude Code in the demo project
@@ -203,7 +203,7 @@ Try these starter commands:
 
 Suitable for small teams without a git workflow:
 
-1. Put the project's `.claude/db-knowledge/` folder on a shared drive (Dropbox, Google Drive, etc.)
+1. Put the project's `db-knowledge/` folder on a shared drive (Dropbox, Google Drive, etc.)
 2. Each analyst symlinks or copies it to their local project
 3. Merge changes manually when multiple people update the same file
 
@@ -213,11 +213,11 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 
 1. Create a git repo containing `.claude/` (without `db-connections/active.yaml`)
 2. Each analyst clones the repo and creates their own `active.yaml` locally
-3. After a session, commit KB changes: `git add .claude/db-knowledge && git commit`
+3. After a session, commit KB changes: `git add db-knowledge && git commit`
 4. Open PRs for significant changes (new schema overviews, major gotchas)
 
 **What to commit:**
-- `.claude/db-knowledge/**` — all KB files
+- `db-knowledge/**` — all KB files
 - `.claude/CLAUDE.md` — project instructions
 - `.claude/db-connections/connections.example.yaml` — template (no real credentials)
 

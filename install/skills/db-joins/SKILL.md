@@ -227,7 +227,7 @@ After all relationship blocks, output a compact summary:
 
 After presenting join paths, ask:
 
-> "Add these relationship blocks to `.claude/db-knowledge/{schema}/_schema-overview.md`?
+> "Add these relationship blocks to `db-knowledge/{schema}/_schema-overview.md`?
 > (y = append to Section 3 and update Section 4 summary table, n = skip)"
 
 If yes and `_schema-overview.md` exists:
@@ -237,7 +237,7 @@ If yes and `_schema-overview.md` exists:
 
 If the file does not exist:
 - Offer to run `/db-orient` first to create a full overview, or save just the join paths as a standalone file:
-  `.claude/db-knowledge/{schema}/_joins-{table_a}-{table_b}.md`
+  `db-knowledge/{schema}/_joins-{table_a}-{table_b}.md`
 
 ---
 

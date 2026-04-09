@@ -19,7 +19,7 @@ This command never makes database calls — it only reads local files.
 ## Behavior
 
 1. Read the active connection from `.claude/db-connections/active.yaml`
-2. Scan the knowledge base at `.claude/db-knowledge/`
+2. Scan the knowledge base at `db-knowledge/`
 3. Report the session state in a compact, scannable format
 
 ---
@@ -63,14 +63,14 @@ Stop here if no connection is found.
 
 ## Step 2: Scan Knowledge Base
 
-Scan `.claude/db-knowledge/`. Collect:
+Scan `db-knowledge/`. Collect:
 
 - **Schemas with overview:** Count subdirectories that contain a `_schema-overview.md` file
 - **Tables documented:** Count all `{table}.md` files (exclude files starting with `_`)
 - **Active gotchas:** Count `## ⚠️` or `### ⚠️` headings in `_gotchas.md` (root and all schema subdirs)
 - **Open questions:** Count unchecked `- [ ]` items in `_open-questions.md` (root and all schema subdirs)
 
-If `.claude/db-knowledge/` does not exist or is empty:
+If `db-knowledge/` does not exist or is empty:
 - Report all KB counts as 0
 - Note: "Knowledge base is empty. Run `/db-orient` to start building it."
 

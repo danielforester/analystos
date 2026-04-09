@@ -69,7 +69,7 @@ If introspection fails (table not found, permission denied), stop and report:
 
 ## Step 3: Check for Existing KB Entry
 
-Check whether `.claude/db-knowledge/{schema}/{table_name}.md` exists.
+Check whether `db-knowledge/{schema}/{table_name}.md` exists.
 
 **If the file exists:**
 - Read its contents
@@ -122,11 +122,11 @@ After each correction, confirm the change:
 
 When the analyst types **save**:
 
-1. Determine the output path: `.claude/db-knowledge/{schema}/{table_name}.md`
-2. If the directory `.claude/db-knowledge/{schema}/` does not exist, note that it needs to be created
+1. Determine the output path: `db-knowledge/{schema}/{table_name}.md`
+2. If the directory `db-knowledge/{schema}/` does not exist, note that it needs to be created
 3. Write the approved draft to the file (UTF-8 encoding)
 4. Confirm:
-   > "Saved to `.claude/db-knowledge/{schema}/{table_name}.md`."
+   > "Saved to `db-knowledge/{schema}/{table_name}.md`."
 
 If overwriting an existing entry, confirm with one extra line:
    > "(Previous entry overwritten. Use `git diff` to review changes.)"

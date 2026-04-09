@@ -17,7 +17,7 @@ Usage:
     python scripts/kb-to-obsidian.py [OPTIONS]
 
 Options:
-    --source PATH      Source KB directory (default: .claude/db-knowledge/)
+    --source PATH      Source KB directory (default: db-knowledge/)
     --output PATH      Output vault directory (default: .claude/_obsidian-vault/)
     --frontmatter      Inject YAML frontmatter into files that don't have it
     --callouts         Convert ⚠️ bullet patterns to Obsidian callout blocks
@@ -27,7 +27,7 @@ Options:
 Examples:
     python scripts/kb-to-obsidian.py
     python scripts/kb-to-obsidian.py --frontmatter --callouts
-    python scripts/kb-to-obsidian.py --source .claude/db-knowledge/ --output ~/vault/ --watch
+    python scripts/kb-to-obsidian.py --source db-knowledge/ --output ~/vault/ --watch
 """
 
 import argparse
@@ -330,9 +330,9 @@ def main() -> None:
     parser.add_argument(
         "--source",
         type=Path,
-        default=Path(".claude/db-knowledge/"),
+        default=Path("db-knowledge/"),
         metavar="PATH",
-        help="Source KB directory (default: .claude/db-knowledge/)",
+        help="Source KB directory (default: db-knowledge/)",
     )
     parser.add_argument(
         "--output",

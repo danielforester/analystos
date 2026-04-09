@@ -23,7 +23,7 @@ Key files:
 1. **Read-only by default** — All database interactions assume read-only; writes require explicit override
 2. **Cost-aware before execution** — Flag expensive queries before running, not after
 3. **Progressively calibrated** — Responses adjust to analyst expertise level
-4. **Knowledge base as first-class artifact** — Markdown files in `.claude/db-knowledge/` are the product
+4. **Knowledge base as first-class artifact** — Markdown files in `db-knowledge/` are the product
 5. **Database-agnostic core** — Oracle, Snowflake, AWS Athena, Salesforce (SOQL)
 6. **Git-ready** — KB files are designed for version control and team sharing
 
@@ -53,7 +53,7 @@ The framework delivers three user modes (**Discovery**, **Work**, **Documentatio
 
 ### Knowledge Base Layout (target state)
 ```
-.claude/db-knowledge/
+db-knowledge/
 ├── README.md                    # Index of all schemas
 ├── _gotchas.md                  # Cross-schema warnings
 ├── _open-questions.md
@@ -83,11 +83,11 @@ install/              # Copy to ~/.claude/ — global skills and hooks
     db-cost-gate.py   # Pre-tool-use: gates expensive queries, asks for confirmation
   settings.json       # Hook registration template (merge into ~/.claude/settings.json)
 
-templates/            # Copy to .claude/ in each analyst project
-  connections.example.yaml   # Connection profile schema (copy → active.yaml, gitignored)
+templates/            # Per-project configuration templates
+  connections.example.yaml   # Connection profile schema (copy → .claude/db-connections/active.yaml, gitignored)
   project-CLAUDE.md          # Project-level Claude instructions (copy → .claude/CLAUDE.md)
   .gitignore                 # Excludes credentials and .db files
-  db-knowledge/              # Starter KB structure (README, _gotchas, _open-questions)
+  db-knowledge/              # Starter KB structure (copy → db-knowledge/ at project root)
 
 demo/                 # SQLite demo database — no credentials required
   create-demo-db.sql         # Run this to create demo/demo.db

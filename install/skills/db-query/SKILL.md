@@ -58,7 +58,7 @@ that materially changes the query structure.
 
 ## Step 2: Check the Knowledge Base
 
-Before writing any SQL, check `.claude/db-knowledge/` for context:
+Before writing any SQL, check `db-knowledge/` for context:
 
 1. Read `_gotchas.md` — load any cross-schema warnings
 2. If the question involves a specific schema, read `{schema}/_schema-overview.md` if it exists
@@ -218,7 +218,7 @@ After interpretation, if the result is significant (row count > 0, non-trivial q
 analyst seems satisfied with the result), offer:
 
 > "Save this query to the knowledge base? I can store it as
-> `.claude/db-knowledge/{schema}/_queries/{suggested_name}.sql` with a description."
+> `db-knowledge/{schema}/_queries/{suggested_name}.sql` with a description."
 
 If the analyst agrees, prompt for a name if not already clear, then write the file:
 
@@ -234,7 +234,7 @@ If the analyst agrees, prompt for a name if not already clear, then write the fi
 {the SQL}
 ```
 
-Confirm the save: "Saved to `.claude/db-knowledge/{schema}/_queries/{name}.sql`."
+Confirm the save: "Saved to `db-knowledge/{schema}/_queries/{name}.sql`."
 
 ---
 

@@ -106,5 +106,5 @@ A pre-populated knowledge base for the demo database lives in `demo/demo-knowled
 To use it, copy it into your project:
 
 ```bash
-cp -r demo/demo-knowledge/ .claude/db-knowledge/
+cp -r demo/demo-knowledge/ db-knowledge/
 ```

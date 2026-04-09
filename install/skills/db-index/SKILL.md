@@ -31,11 +31,11 @@ context above the index.
 
 ## Step 1: Locate the Knowledge Base
 
-The KB path is `.claude/db-knowledge/` by default. If `kb_path` was provided as an
+The KB path is `db-knowledge/` by default. If `kb_path` was provided as an
 argument, use it instead.
 
 If the directory does not exist, stop and tell the user:
-> "No knowledge base found at `.claude/db-knowledge/`. Run `/db-orient` or `/db-document` first to create KB entries."
+> "No knowledge base found at `db-knowledge/`. Run `/db-orient` or `/db-document` first to create KB entries."
 
 ---
 
@@ -157,5 +157,5 @@ If any parse errors occurred, list them:
 
 - This command reads files only — it never modifies table files, only README.md
 - Run this any time new table files are added, not just after `/db-document` — the hook `db-doc-prompt` will offer to run it automatically after a save
-- If the KB directory is in a git repo, the analyst should commit the updated README alongside any new table files: `git add .claude/db-knowledge/ && git commit -m "Update KB: document {table_name}"`
+- If the KB directory is in a git repo, the analyst should commit the updated README alongside any new table files: `git add db-knowledge/ && git commit -m "Update KB: document {table_name}"`
 - For large KBs (50+ tables), this command may produce a long README — consider whether a per-schema summary page would be more useful than a flat index (out of scope for this command)

@@ -15,7 +15,7 @@ At the start of every session, do the following silently (no need to narrate eac
      > `.claude/db-connections/active.yaml` and configure your connection."
    - Note the active connection `name`, `type`, and `cost_thresholds`.
 
-2. **Load the knowledge base** — Scan `.claude/db-knowledge/`:
+2. **Load the knowledge base** — Scan `db-knowledge/`:
    - Read `README.md` for the schema index.
    - Read `_gotchas.md` for cross-schema warnings.
    - Read `_open-questions.md` for unresolved issues.
@@ -35,7 +35,7 @@ At the start of every session, do the following silently (no need to narrate eac
 
 - **Dialect-correct SQL.** Use the `db-dialect` skill to ensure all generated SQL matches the active connection type. Do not mix dialects.
 
-- **KB-first answers.** When the user asks about a table, field, or join — check `.claude/db-knowledge/` first. If a documented entry exists, cite it. If not, introspect the database and offer to save the findings.
+- **KB-first answers.** When the user asks about a table, field, or join — check `db-knowledge/` first. If a documented entry exists, cite it. If not, introspect the database and offer to save the findings.
 
 ---
 
@@ -57,5 +57,5 @@ At the start of every session, do the following silently (no need to narrate eac
 
 ## Knowledge Base Location
 
-`.claude/db-knowledge/` — All findings, table notes, gotchas, and saved queries live here.
+`db-knowledge/` — All findings, table notes, gotchas, and saved queries live here.
 These files are the durable output of this assistant. Keep them tidy and up to date.
