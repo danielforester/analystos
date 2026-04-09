@@ -1,6 +1,6 @@
 ---
 name: db-explain-result
-description: Post-execution result interpretation. Given a SQL query and its result set, synthesizes a plain-English explanation of what the numbers show, infers result grain, and flags anomalies such as fan-out inflation, unexpected nulls, suspiciously round aggregates, and empty result sets. Usable standalone after any query execution or automatically via /db-query.
+description: This skill should be used immediately after executing a SQL query — either automatically via /db-query or when the analyst requests interpretation of a result set. Apply it to synthesize a plain-English explanation of what the numbers show, infer result grain, and flag anomalies such as fan-out inflation, unexpected nulls, suspiciously round aggregates, and empty result sets.
 ---
 
 # DB Explain Result Skill

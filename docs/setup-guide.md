@@ -23,21 +23,33 @@ available in every project.
 
 ### 1a. Copy skills and hooks
 
+Each skill is a directory containing a `SKILL.md` file — copy the whole directory.
+
 ```bash
 # Create directories if they don't exist
 mkdir -p ~/.claude/skills
 mkdir -p ~/.claude/hooks
 
-# Copy from this repo — skills
-cp install/skills/db-dialect.md    ~/.claude/skills/
-cp install/skills/db-cost-check.md ~/.claude/skills/
-cp install/skills/db-introspect.md ~/.claude/skills/
-cp install/skills/db-sample.md     ~/.claude/skills/
-cp install/skills/db-orient.md     ~/.claude/skills/
-cp install/skills/db-explain.md    ~/.claude/skills/
-cp install/skills/db-profile.md    ~/.claude/skills/
-cp install/skills/db-joins.md      ~/.claude/skills/
-cp install/skills/db-status.md     ~/.claude/skills/
+# Copy from this repo — reference skills (used internally by commands)
+cp -r install/skills/db-dialect       ~/.claude/skills/
+cp -r install/skills/db-cost-check    ~/.claude/skills/
+cp -r install/skills/db-introspect    ~/.claude/skills/
+cp -r install/skills/db-sample        ~/.claude/skills/
+cp -r install/skills/db-soql          ~/.claude/skills/
+cp -r install/skills/db-explain-result ~/.claude/skills/
+cp -r install/skills/db-doc-writer    ~/.claude/skills/
+
+# Copy slash commands (user-invocable via /db-*)
+cp -r install/skills/db-orient        ~/.claude/skills/
+cp -r install/skills/db-explain       ~/.claude/skills/
+cp -r install/skills/db-profile       ~/.claude/skills/
+cp -r install/skills/db-joins         ~/.claude/skills/
+cp -r install/skills/db-status        ~/.claude/skills/
+cp -r install/skills/db-query         ~/.claude/skills/
+cp -r install/skills/db-gotchas       ~/.claude/skills/
+cp -r install/skills/db-document      ~/.claude/skills/
+cp -r install/skills/db-capture       ~/.claude/skills/
+cp -r install/skills/db-index         ~/.claude/skills/
 
 # Copy hooks
 cp install/hooks/db-safety.py      ~/.claude/hooks/
@@ -220,6 +232,6 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 | `ModuleNotFoundError: yaml` | PyYAML not installed | `pip install pyyaml` |
 | `No active connection found` | `active.yaml` missing | Follow Part 2c |
 | Safety hook blocking safe queries | False positive on keyword in command | Check the query for reserved words in non-SQL context; file an issue |
-| `/db-orient` not recognized | Skill not installed globally | Re-run the `cp install/skills/...` commands in Part 1a |
+| `/db-orient` not recognized | Skill not installed globally | Re-run the `cp -r install/skills/db-orient ~/.claude/skills/` command in Part 1a |
 | Cost gate not triggering | Dialect not Oracle/Athena | Expected — SQLite has no cost gate |
 | Wrong SQL dialect | Dialect mismatch | Check `type:` in `active.yaml` matches your DB |

@@ -1,6 +1,6 @@
 ---
 name: db-dialect
-description: Dialect-aware metadata extraction and syntax reference for Oracle, Athena, SQLite, Snowflake, and Salesforce SOQL. Use this skill whenever you need to introspect a database, build dialect-correct SQL, or understand how to estimate query cost.
+description: This skill should be used when performing any database work that requires dialect-specific SQL syntax, metadata queries, or cost estimation — including introspecting tables, writing queries, or checking EXPLAIN output. Apply it whenever the active connection type (sqlite, oracle, athena, snowflake, salesforce) determines which SQL forms to use.
 ---
 
 # DB Dialect Skill

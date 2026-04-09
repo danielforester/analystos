@@ -1,6 +1,12 @@
 ---
 name: db-joins
 description: Discover and document join paths between two or more tables. Uses FK metadata as the primary source, then falls back to column name matching for heuristic discovery. Checks cardinality and flags fan-out risk. Outputs in the structured relationship block format used in _schema-overview.md.
+user-invocable: true
+argument-hint: "<table1> [table2 ...]"
+allowed-tools:
+  - Read
+  - Bash
+  - Write
 ---
 
 # /db-joins

@@ -1,6 +1,12 @@
 ---
 name: db-query
 description: Natural-language to SQL. Interprets analyst intent, introspects the schema to confirm tables and columns exist, drafts dialect-correct SQL with inline comments, runs safety and cost checks, presents the query for review, executes on confirmation, and calls db-explain-result on the output. Highest-value daily-use command.
+user-invocable: true
+argument-hint: "<natural language question>"
+allowed-tools:
+  - Read
+  - Bash
+  - Write
 ---
 
 # /db-query

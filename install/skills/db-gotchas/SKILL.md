@@ -1,6 +1,11 @@
 ---
 name: db-gotchas
 description: Surface known issues and traps for a table or schema from the knowledge base. Falls back to live introspection-based gotcha detection if the KB has no entries for the target. Always KB-first — no database calls if documented gotchas exist.
+user-invocable: true
+argument-hint: "[schema_name | table_name]"
+allowed-tools:
+  - Read
+  - Write
 ---
 
 # /db-gotchas

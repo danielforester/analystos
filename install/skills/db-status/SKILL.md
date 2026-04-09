@@ -1,6 +1,9 @@
 ---
 name: db-status
 description: Show the current DB Analyst session state — active connection, schema scope, cost thresholds, and knowledge base inventory. No database calls required. Run /db-status at any time to confirm what is loaded and ready.
+user-invocable: true
+allowed-tools:
+  - Read
 ---
 
 # /db-status

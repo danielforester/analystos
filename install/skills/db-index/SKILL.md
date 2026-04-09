@@ -1,6 +1,11 @@
 ---
 name: db-index
 description: Regenerates the db-knowledge/README.md index table by scanning the knowledge base directory for schema folders and table files. Run /db-index after adding or updating table documentation to keep the index current.
+user-invocable: true
+argument-hint: "[kb_path]"
+allowed-tools:
+  - Read
+  - Write
 ---
 
 # /db-index

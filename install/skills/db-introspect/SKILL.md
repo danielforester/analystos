@@ -1,6 +1,6 @@
 ---
 name: db-introspect
-description: Dialect-aware metadata extraction for any database table or schema. Returns structured information about columns, types, PKs, FKs, indexes, comments, and row counts. Use this skill whenever you need to understand the structure of a database object before explaining, orienting, or querying it.
+description: This skill should be used whenever schema metadata is needed before explaining, orienting, querying, or documenting a database object. Apply it to extract columns, types, PKs, FKs, indexes, comments, and row counts from any table or schema. It is the foundation step for /db-orient, /db-explain, /db-query, and /db-document.
 ---
 
 # DB Introspect Skill

@@ -1,6 +1,11 @@
 ---
 name: db-profile
 description: Statistical profile of a table or column. Reports row counts, null rates, distinct value counts, min/max, top-N values, and numeric distribution. Always runs through db-cost-gate before execution. Use /db-profile to understand the shape and health of a table or column before writing queries.
+user-invocable: true
+argument-hint: "<table_name> [column_name]"
+allowed-tools:
+  - Read
+  - Bash
 ---
 
 # /db-profile

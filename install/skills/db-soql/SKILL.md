@@ -1,6 +1,6 @@
 ---
 name: db-soql
-description: Salesforce SOQL construction, sObject relationship traversal, describeSObject metadata extraction, and API governor limit awareness. Use this skill whenever working with a Salesforce connection — SOQL is not SQL, and the differences matter for correctness and safety.
+description: This skill should be used whenever the active connection type is Salesforce (type: salesforce) and SOQL queries need to be constructed, relationship traversal is required, describeSObject metadata must be extracted, or API governor limits need to be checked. SOQL is not SQL — apply this skill to avoid syntax errors and silent data issues.
 ---
 
 # DB SOQL Skill

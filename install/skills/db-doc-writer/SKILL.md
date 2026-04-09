@@ -1,6 +1,6 @@
 ---
 name: db-doc-writer
-description: Documentation writing engine for the DB Analyst Framework. Given introspection output and analyst-provided context, drafts a structured per-table KB entry in the standard {table}.md format. Used internally by /db-document. Can also be invoked directly when you already have introspection output and want to produce a draft without re-querying.
+description: This skill should be used when drafting or updating a per-table knowledge base entry (a {table}.md data dictionary file). It is the writing engine for /db-document — apply it after db-introspect and db-sample have run, passing their output plus any analyst-provided context to produce a structured KB entry ready for review.
 ---
 
 # DB Doc Writer Skill

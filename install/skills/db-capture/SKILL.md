@@ -1,6 +1,11 @@
 ---
 name: db-capture
 description: Save a SQL query and its analyst-provided context (purpose, result interpretation, caveats) as a named, annotated .sql file in the knowledge base. Use /db-capture after writing a query you want to keep as a canonical example or reference for the team.
+user-invocable: true
+argument-hint: "[query_name]"
+allowed-tools:
+  - Read
+  - Write
 ---
 
 # /db-capture

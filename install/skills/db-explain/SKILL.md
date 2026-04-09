@@ -1,6 +1,12 @@
 ---
 name: db-explain
 description: Plain-English explanation of a database table, view, column, or SQL query. Synthesizes schema metadata, sample data, and knowledge base entries into a concise explanation with inferred grain, business purpose, and gotchas. Offers to save the explanation to the knowledge base.
+user-invocable: true
+argument-hint: "<table_name> | column: <table.col> | query: <SQL>"
+allowed-tools:
+  - Read
+  - Bash
+  - Write
 ---
 
 # /db-explain

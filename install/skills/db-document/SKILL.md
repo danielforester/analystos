@@ -1,6 +1,13 @@
 ---
 name: db-document
 description: Interactive table documentation workflow. Runs introspection on a target table, checks for an existing KB entry, drafts a structured data dictionary entry via db-doc-writer, accepts analyst review and corrections, and writes the final entry to db-knowledge/{schema}/{table}.md. Use /db-document when you want to create or update a table's KB entry.
+user-invocable: true
+argument-hint: "<table_name> [schema_name]"
+allowed-tools:
+  - Read
+  - Bash
+  - Write
+  - Edit
 ---
 
 # /db-document

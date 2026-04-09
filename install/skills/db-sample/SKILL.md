@@ -1,6 +1,6 @@
 ---
 name: db-sample
-description: Safe, cost-controlled data sampling for any database table. Always uses row-limiting syntax to avoid full scans. Returns representative rows plus a column value summary. Use this skill when you need real data to understand a table's content, before explaining or orienting.
+description: This skill should be used when representative rows are needed to understand a table's data shape, detect soft-delete patterns, identify snapshot columns, or spot high null rates — typically as a step within /db-orient, /db-explain, /db-document, or /db-gotchas. Always uses row-limiting syntax to avoid full scans.
 ---
 
 # DB Sample Skill

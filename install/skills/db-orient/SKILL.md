@@ -1,6 +1,12 @@
 ---
 name: db-orient
 description: Structured orientation to an unfamiliar database schema. Run /db-orient when you are new to a database and want a complete picture: entity clusters, key relationships, gotchas, and common query patterns. Produces output that can be saved to the knowledge base as _schema-overview.md.
+user-invocable: true
+argument-hint: "[schema_name]"
+allowed-tools:
+  - Read
+  - Bash
+  - Write
 ---
 
 # /db-orient
