@@ -75,27 +75,31 @@ db-knowledge/
 
 ```
 install/              # Copy to ~/.claude/ — global skills and hooks
-  skills/
-    db-dialect.md     # Dialect-aware metadata query reference (Oracle, Athena, SQLite)
-    db-cost-check.md  # Cost estimation instructions (Oracle EXPLAIN PLAN, Athena EXPLAIN)
+  skills/             # All /db-* slash commands and model-invoked reference skills
   hooks/
     db-safety.py      # Pre-tool-use: blocks DDL/DML; override with "override read-only"
     db-cost-gate.py   # Pre-tool-use: gates expensive queries, asks for confirmation
   settings.json       # Hook registration template (merge into ~/.claude/settings.json)
 
-templates/            # Per-project configuration templates
-  connections.example.yaml   # Connection profile schema (copy → .claude/db-connections/active.yaml, gitignored)
-  project-CLAUDE.md          # Project-level Claude instructions (copy → .claude/CLAUDE.md)
-  .gitignore                 # Excludes credentials and .db files
-  db-knowledge/              # Starter KB structure (copy → db-knowledge/ at project root)
-
-demo/                 # SQLite demo database — no credentials required
-  create-demo-db.sql         # Run this to create demo/demo.db
-  demo-connections.yaml      # Ready-to-use connection config for the demo
-  demo-knowledge/            # Pre-populated KB with demo gotchas
+sample-project/       # Ready-to-use project — copy this folder to start immediately
+  .claude/
+    CLAUDE.md                        # Project-level Claude instructions
+    db-connections/
+      connections.example.yaml       # All connection profiles template
+      active.yaml                    # Pre-configured for demo DB (committed here only)
+      demo-db/                       # Bundled SQLite demo database
+        create-demo-db.sql
+        demo.db
+  db-knowledge/                      # Blank KB scaffold (README, _gotchas, _open-questions)
+    example_schema/
+      _table-template.md             # Copy this when documenting a new table
+  .gitignore                         # Protects credentials in real projects
 
 docs/
-  setup-guide.md      # Full install walkthrough (global + per-project + demo quickstart)
+  setup-guide.md      # Full install walkthrough (global install + using sample-project)
+
+scripts/
+  kb-to-obsidian.py   # Convert KB to an Obsidian-compatible vault
 ```
 
 ## Implementation Sequencing

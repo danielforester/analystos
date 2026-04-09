@@ -1,9 +1,11 @@
-# DB Analyst Framework — repo-level gitignore
+# AnalystOS — repo-level gitignore
 
 # Generated SQLite databases (recreate from create-demo-db.sql)
 *.db
 *.sqlite
 *.sqlite3
+# Exception: the bundled demo database is committed so sample-project works out of the box
+!sample-project/.claude/db-connections/demo-db/demo.db
 
 # Credentials and local connection config
 .env

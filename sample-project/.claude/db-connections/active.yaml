@@ -1,0 +1,20 @@
+# AnalystOS Sample Project — Active Connection
+# Pre-configured for the bundled SQLite demo database.
+#
+# This file is intentionally committed here so the sample-project works out of the box.
+# In real analyst projects, active.yaml is gitignored (see .gitignore) — never commit credentials.
+
+active: demo
+
+connections:
+  - name: demo
+    type: sqlite
+    display_name: "AnalystOS Demo Database"
+    read_only: true
+    transport: direct
+    # mcp_server: sqlite    # Uncomment if using the SQLite MCP server instead of direct Bash
+
+    sqlite:
+      path: .claude/db-connections/demo-db/demo.db
+
+    cost_thresholds: ~      # SQLite has no network cost — no thresholds needed

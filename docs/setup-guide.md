@@ -104,44 +104,40 @@ echo '{"tool":"bash","input":{"query":"SELECT * FROM users"}}' \
 
 ---
 
-## Part 2 — Per-Project Setup
+## Part 2 — Project Setup (using sample-project)
 
-Repeat these steps for each analyst project or repository.
+The fastest way to set up a new analyst project is to copy `sample-project/` from the
+analystos repo. It is a complete, ready-to-run project pre-configured for the bundled
+SQLite demo database.
 
-### 2a. Create the .claude directory structure
-
-```bash
-mkdir -p .claude/db-connections
-mkdir -p db-knowledge
-```
-
-### 2b. Copy the project templates
+### 2a. Copy sample-project
 
 ```bash
-# From the analystos repo root:
-cp templates/project-CLAUDE.md         .claude/CLAUDE.md
-cp templates/connections.example.yaml   .claude/db-connections/connections.example.yaml
-cp templates/db-knowledge/README.md     db-knowledge/README.md
-cp templates/db-knowledge/_gotchas.md   db-knowledge/_gotchas.md
-cp templates/db-knowledge/_open-questions.md db-knowledge/_open-questions.md
-cp templates/.gitignore                 .gitignore   # or merge into existing
+# From the analystos repo root — copy to wherever your project lives
+cp -r sample-project/ ~/my-analyst-project/
+
+cd ~/my-analyst-project/
 ```
 
-### 2c. Configure your connection
+That's it for the demo. Open Claude Code here and it will auto-load the connection and KB.
+
+### 2b. Switch to your real database
+
+When you're ready to connect to your own database:
 
 ```bash
-# Copy the example and fill in your values
-cp .claude/db-connections/connections.example.yaml .claude/db-connections/active.yaml
+# Edit the active connection config
+$EDITOR .claude/db-connections/active.yaml
 ```
 
-Edit `active.yaml`:
-- Set `active:` to the name of your connection
-- Fill in your database host, credentials (as env var names), and schema scope
+- Set `active:` to the name of your connection (e.g., `oracle-prod`)
+- Add a connection profile under `connections:` — use `connections.example.yaml` as reference
+- Fill in your database host, credentials as env var names, and schema scope
 - Set cost thresholds appropriate for your environment
 
-**Never commit `active.yaml`** — verify it's in `.gitignore`.
+**Never commit `active.yaml` in your own project** — it's gitignored by default (see `.gitignore`).
 
-### 2d. Set credential environment variables
+### 2c. Set credential environment variables
 
 Add your credentials to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
 
@@ -162,24 +158,13 @@ ORACLE_PASSWORD=my_password
 
 ---
 
-## Part 3 — Demo Database Quickstart (SQLite, no credentials)
+## Part 3 — Demo Database Quickstart
 
-The fastest way to try the framework is the built-in demo database.
+`sample-project` ships with a pre-built SQLite demo database — no credentials, no cloud access required.
 
 ```bash
-# 1. Create the database (from the analystos repo root)
-sqlite3 demo/demo.db < demo/create-demo-db.sql
-
-# 2. Set up the demo project structure
-mkdir -p my-demo-project/.claude/db-connections
-mkdir -p my-demo-project/db-knowledge
-
-cp demo/demo-connections.yaml my-demo-project/.claude/db-connections/active.yaml
-cp -r demo/demo-knowledge/    my-demo-project/db-knowledge/
-cp templates/project-CLAUDE.md my-demo-project/.claude/CLAUDE.md
-
-# 3. Open Claude Code in the demo project
-cd my-demo-project
+cp -r sample-project/ ~/my-demo-project/
+cd ~/my-demo-project/
 claude
 ```
 
@@ -194,6 +179,9 @@ Try these starter commands:
 - `/db-profile sales_order_items` — statistical profile of the line items table
 - `/db-joins sales_orders sales_customers hr_employees` — discover all join paths
 - `"What are the known gotchas in this database?"` — natural language also works
+
+The demo database schema is documented in
+`sample-project/.claude/db-connections/demo-db/README.md`.
 
 ---
 
