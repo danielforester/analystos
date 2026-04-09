@@ -6,6 +6,7 @@ argument-hint: "<table_name> [column_name]"
 allowed-tools:
   - Read
   - Bash
+  - Write
 ---
 
 # /db-profile
@@ -27,6 +28,7 @@ anything looks anomalous.
 3. Execute profile queries
 4. Format and present results
 5. Flag anomalies
+6. Offer to save anomaly flags to the knowledge base (table profiles only)
 
 ---
 
@@ -296,6 +298,89 @@ Skip for TEXT, VARCHAR, DATE, TIMESTAMP, BOOLEAN.
 ### Anomaly Flags
 {List any flags from the anomaly table above, or "None detected."}
 ```
+
+---
+
+## Step 6: Offer to Save Anomaly Flags (Table Profile Only)
+
+Profile statistics (row counts, null rates, distributions) are time-sensitive and do
+**not** belong in the knowledge base — they go stale and mislead future readers.
+
+**The exception is anomaly flags.** Flags like "soft-delete pattern detected" or
+"`status` has only 4 distinct values" are structural facts about the table, not
+snapshots. These map directly to the Gotchas section of a KB entry and are worth
+persisting.
+
+**Only offer this step when:**
+- The target was a full **table profile** (not a column deep-dive)
+- At least one anomaly flag was detected
+
+If both conditions are met, ask after presenting results:
+
+> "Found {N} anomaly flag(s) for `{table_name}`. Save them to the knowledge base
+> gotchas? (y/n)"
+
+Do not ask if no anomalies were detected — there is nothing worth saving.
+
+---
+
+### Case A: KB entry already exists
+
+File `db-knowledge/{schema}/{table_name}.md` exists.
+
+1. Read the file
+2. Locate the `## Gotchas` section
+3. Append any flags not already documented there (match by flag text to avoid
+   duplicates)
+4. Write the updated file
+5. Confirm: "Added {N} gotcha(s) to `db-knowledge/{schema}/{table_name}.md`."
+
+Format each appended flag as a bullet using the anomaly flag text from Step 3a:
+
+```markdown
+- ⚠️ **Soft delete** — `deleted_at` is {N}% null. Always filter `WHERE deleted_at IS NULL`.
+- ⚠️ **Sparse column** — `{col}` is {N}% null — may be optional, legacy, or not yet populated.
+- ⚠️ **Constant column** — `{col}` has only one distinct value across all rows.
+```
+
+---
+
+### Case B: No KB entry exists
+
+File `db-knowledge/{schema}/{table_name}.md` does not exist.
+
+Create a minimal stub containing only the gotchas and open questions sections, then
+confirm and suggest the next step:
+
+```markdown
+# {TABLE_NAME}
+
+**Schema:** `{schema}`
+**Last Updated:** {today's date}
+**Rows (approx):** {N from profile}
+
+## Gotchas
+
+- ⚠️ {flag 1}
+- ⚠️ {flag 2}
+
+## Open Questions
+
+- [ ] Profile run {today's date} — full documentation pending.
+```
+
+After writing:
+> "Created `db-knowledge/{schema}/{table_name}.md` with {N} gotcha(s). This is a
+> stub — run `/db-explain {table_name}` to add grain, business purpose, and key
+> column descriptions."
+
+---
+
+### Column profile: no save offer
+
+Do **not** offer to save anomaly flags for column deep-dives. Column-level findings
+(null rate, value distribution, interpretation) should be added to a table KB entry
+via `/db-explain column: {table}.{col}`, which handles that workflow correctly.
 
 ---
 
