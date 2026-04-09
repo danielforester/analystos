@@ -19,10 +19,14 @@ table scans, and it respects the active connection's cost thresholds.
 
 ---
 
-## Step 1: Determine Dialect and Row-Limit Syntax
+## Step 1: Determine Dialect, Transport, and Row-Limit Syntax
 
-Read `.claude/db-connections/active.yaml` to identify the connection `type`. Use the
-correct row-limiting clause for that dialect:
+Read `.claude/db-connections/active.yaml` to identify:
+- `type` — the database dialect
+- `transport` — `direct` (default) or `mcp`
+- `mcp_server` — the MCP server name (when `transport: mcp`); forms tool names `mcp__{mcp_server}__{tool}`
+
+Use the correct row-limiting clause for that dialect:
 
 | Dialect | Row-limit syntax |
 |---------|-----------------|
@@ -57,7 +61,17 @@ the partition key for samples — the goal is to see representative data across 
 
 ## Step 3: Run Sample Query
 
-Execute the row-limited query. If it fails:
+**If `transport: mcp`** — call the MCP server:
+
+```
+mcp__{mcp_server}__read_query  {"query": "SELECT {columns} FROM {table} LIMIT {n}"}
+```
+
+For value summary stats (Step 4), also use `read_query` with the appropriate aggregate SELECT.
+
+**If `transport: direct`** — execute via Bash using the dialect-appropriate syntax from Step 1.
+
+In both cases, if the query fails:
 - Permission error: Report "⚠️ Cannot sample {table} — permission denied"
 - Table not found: Report "⚠️ Table {table} does not exist in the active schema"
 - Other error: Report the error message and suggest the user verify the table name

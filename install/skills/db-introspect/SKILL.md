@@ -24,6 +24,8 @@ If no target is specified, introspect all tables and views in the active schema.
 
 Read `.claude/db-connections/active.yaml`. Identify:
 - `type` — the database dialect (sqlite, oracle, athena, snowflake, salesforce)
+- `transport` — `direct` (default) or `mcp`. Determines how queries are executed in Step 2.
+- `mcp_server` — the MCP server name (required when `transport: mcp`). Used to form tool names: `mcp__{mcp_server}__{tool}`.
 - `schema_scope` — the schemas or databases in scope (Oracle: list of owner names; Athena: database name; SQLite: N/A)
 - Connection-specific fields needed to qualify table names
 
@@ -34,6 +36,23 @@ Apply the `db-dialect` skill to determine the correct metadata queries for this 
 ## Step 2: Run Metadata Queries
 
 ### SQLite
+
+**If `transport: mcp`** — use MCP tools instead of Bash:
+
+```
+mcp__{mcp_server}__list_tables
+  → returns all table names in the database
+
+mcp__{mcp_server}__describe_table  {"table_name": "{table}"}
+  → returns columns, types, and nullability (replaces PRAGMA table_info)
+
+mcp__{mcp_server}__read_query  {"query": "SELECT COUNT(*) AS row_count FROM {table}"}
+  → for row counts (run per table)
+```
+
+FKs and indexes are not available via the standard SQLite MCP server — note "FK/index data unavailable via MCP" in the output and suggest the user switch to `transport: direct` if this detail is needed.
+
+**If `transport: direct`** — run via Bash:
 
 ```sql
 -- All tables and views
@@ -58,6 +77,8 @@ SELECT COUNT(*) AS row_count FROM {table_name};
 ```
 
 SQLite has no native table comments. Column type strings are loose (affinity-based) — note this in output.
+
+---
 
 ### Oracle
 

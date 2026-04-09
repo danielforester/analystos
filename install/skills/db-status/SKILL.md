@@ -28,8 +28,8 @@ This command never makes database calls — it only reads local files.
 
 Read `.claude/db-connections/active.yaml`.
 
-Find the connection whose `name` matches the `active:` field at the top of the file.
-Extract:
+Parse all entries in `connections[]` — these are all available connections. Find the one
+whose `name` matches the `active:` field. Extract from the active connection:
 
 | Field | Source |
 |-------|--------|
@@ -37,7 +37,11 @@ Extract:
 | Type | `type` |
 | Schema scope | `schema_scope` (Oracle), `database` (Athena), `sqlite.path` (SQLite), or "all accessible" |
 | Read-only | `read_only` (true/false) |
+| Transport | `transport` (default: `direct`) |
+| MCP server | `mcp_server` (only when transport is `mcp`) |
 | Cost threshold | `cost_thresholds.warn_rows` (Oracle) or `cost_thresholds.warn_bytes` (Athena) or null (SQLite) |
+
+Also collect all connection names and types from `connections[]` for Step 4 output.
 
 **If `active.yaml` does not exist:**
 
@@ -95,7 +99,14 @@ DB Analyst Status
 Connection    : {display_name} ({type})
 Scope         : {schema_scope list joined by ", " | "all accessible schemas" | path for SQLite}
 Read-only     : {Yes | No — override active if read_only is false}
+Transport     : {direct | mcp (server: {mcp_server})}
 Cost threshold: {formatted threshold string}
+
+Configured Connections
+  {for each connection in connections[], one line:}
+  ▶ {name}   {display_name}   {type}    ← active
+    {name}   {display_name}   {type}
+  Run /db-use <name> to switch.
 
 Knowledge Base
   Schemas with overview : {N}
@@ -105,24 +116,27 @@ Knowledge Base
 
 Framework
   Skills  : db-dialect, db-cost-check, db-introspect, db-sample,
-            db-orient, db-explain, db-status
+            db-orient, db-explain, db-status, db-use
   Hooks   : db-safety (pre-tool-use), db-cost-gate (pre-tool-use)
 
 Run /db-orient to start exploring, or /db-explain {table} for a specific table.
 ```
 
+If only one connection is configured, omit the "Configured Connections" block.
+
 ---
 
 ## Annotated Examples
 
-### Example 1 — SQLite demo, empty KB
+### Example 1 — SQLite demo, single connection, empty KB
 
 ```
 DB Analyst Status
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Connection    : DB Analyst Demo Database (sqlite)
+Connection    : Demo Database (sqlite)
 Scope         : ./demo/demo.db
 Read-only     : Yes
+Transport     : direct
 Cost threshold: none (local database — no cost)
 
 Knowledge Base
@@ -133,13 +147,13 @@ Knowledge Base
 
 Framework
   Skills  : db-dialect, db-cost-check, db-introspect, db-sample,
-            db-orient, db-explain, db-status
+            db-orient, db-explain, db-status, db-use
   Hooks   : db-safety (pre-tool-use), db-cost-gate (pre-tool-use)
 
 Run /db-orient to start exploring, or /db-explain {table} for a specific table.
 ```
 
-### Example 2 — Oracle production, populated KB
+### Example 2 — Multiple connections, Oracle active, populated KB
 
 ```
 DB Analyst Status
@@ -147,7 +161,14 @@ DB Analyst Status
 Connection    : Production Oracle (oracle)
 Scope         : SALES, HR
 Read-only     : Yes
+Transport     : direct
 Cost threshold: 5,000,000 rows (EXPLAIN PLAN threshold)
+
+Configured Connections
+  ▶ oracle-prod    Production Oracle             oracle   ← active
+    snowflake-dw   Data Warehouse (Snowflake)    snowflake
+    demo           Demo Database                 sqlite
+  Run /db-use <name> to switch.
 
 Knowledge Base
   Schemas with overview : 2
@@ -157,7 +178,7 @@ Knowledge Base
 
 Framework
   Skills  : db-dialect, db-cost-check, db-introspect, db-sample,
-            db-orient, db-explain, db-status
+            db-orient, db-explain, db-status, db-use
   Hooks   : db-safety (pre-tool-use), db-cost-gate (pre-tool-use)
 
 Run /db-orient to start exploring, or /db-explain {table} for a specific table.
@@ -171,7 +192,13 @@ DB Analyst Status
 Connection    : Analytics Athena (athena)
 Scope         : analytics
 Read-only     : Yes
+Transport     : direct
 Cost threshold: 1.0 GB (~$0.005 USD/query at current pricing)
+
+Configured Connections
+  ▶ athena-analytics   Analytics Athena (us-east-1)   athena   ← active
+    demo               Demo Database                  sqlite
+  Run /db-use <name> to switch.
 
 Knowledge Base
   Schemas with overview : 1
@@ -181,7 +208,7 @@ Knowledge Base
 
 Framework
   Skills  : db-dialect, db-cost-check, db-introspect, db-sample,
-            db-orient, db-explain, db-status
+            db-orient, db-explain, db-status, db-use
   Hooks   : db-safety (pre-tool-use), db-cost-gate (pre-tool-use)
 
 Run /db-orient to start exploring, or /db-explain {table} for a specific table.

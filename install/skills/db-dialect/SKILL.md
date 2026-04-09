@@ -372,6 +372,40 @@ Governor limits:
 
 ---
 
+## MCP Tool Reference
+
+When `transport: mcp` is set in `active.yaml`, skills call MCP server tools instead of
+executing Bash/Python. The tool name format is:
+
+```
+mcp__{mcp_server}__{tool_name}
+```
+
+where `mcp_server` is the value from `active.yaml` (e.g. `sqlite`, `snowflake`).
+
+| Dialect | Enumerate tables | Describe table schema | Execute read query |
+|---------|-----------------|----------------------|-------------------|
+| **sqlite** | `list_tables` | `describe_table` | `read_query` |
+| **snowflake** | `list_schemas`, `list_tables` | `describe_table` | `execute_query` |
+| oracle | no official MCP server — use `transport: direct` | — | — |
+| athena | no official MCP server — use `transport: direct` | — | — |
+| salesforce | REST API via Bash — use `transport: direct` | — | — |
+
+**SQLite MCP tool signatures:**
+- `list_tables` — no parameters; returns all table names
+- `describe_table {"table_name": "{table}"}` — returns columns with types and nullability
+- `read_query {"query": "{sql}"}` — executes a SELECT and returns rows
+
+**Snowflake MCP tool signatures (official Snowflake MCP server):**
+- `list_schemas` / `list_tables` — enumerate available objects
+- `describe_table {"table_name": "{db}.{schema}.{table}"}` — column metadata
+- `execute_query {"query": "{sql}"}` — executes a read query
+
+Note: MCP tool calls are intercepted by the `db-safety` and `db-cost-gate` hooks exactly
+like Bash calls — no extra configuration needed.
+
+---
+
 ## Dialect Detection
 
 When starting any database work, Claude should:
@@ -379,7 +413,8 @@ When starting any database work, Claude should:
 1. Read `.claude/db-connections/active.yaml`
 2. Find the connection named in `active:`
 3. Check its `type:` field
-4. Apply the corresponding dialect section from this skill
-5. Load `cost_thresholds` for use in cost checks
+4. Check `transport:` (default: `direct`) and `mcp_server:` if transport is `mcp`
+5. Apply the corresponding dialect section from this skill
+6. Load `cost_thresholds` for use in cost checks
 
 If `active.yaml` does not exist, prompt the user to set up their connection config by copying `templates/connections.example.yaml` to `.claude/db-connections/active.yaml`.

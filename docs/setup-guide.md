@@ -50,6 +50,7 @@ cp -r install/skills/db-gotchas       ~/.claude/skills/
 cp -r install/skills/db-document      ~/.claude/skills/
 cp -r install/skills/db-capture       ~/.claude/skills/
 cp -r install/skills/db-index         ~/.claude/skills/
+cp -r install/skills/db-use           ~/.claude/skills/
 
 # Copy hooks
 cp install/hooks/db-safety.py      ~/.claude/hooks/
@@ -185,7 +186,8 @@ claude
 Claude will greet you with: `Connected to DB Analyst Demo Database (sqlite). KB loaded...`
 
 Try these starter commands:
-- `/db-status` — confirm the connection is loaded and see the KB state
+- `/db-status` — confirm the connection is loaded, see the KB state, and list all configured connections
+- `/db-use` — list configured connections; `/db-use <name>` to switch the active connection
 - `/db-orient` — get a full structured orientation to the demo schema
 - `/db-explain sales_orders` — plain-English explanation of the orders table
 - `/db-explain column: sales_customers.deleted_at` — understand the soft-delete pattern
@@ -224,6 +226,80 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 
 ---
 
+## Part 5 — MCP Server Setup (Optional)
+
+By default the framework executes database queries via Bash (Python's `sqlite3` module for
+SQLite, Python drivers for other databases). If you have an MCP server for your database,
+you can configure the framework to call it instead — no Python drivers needed, and query
+results come back as structured JSON rather than shell output.
+
+### When to use MCP transport
+
+| Situation | Recommended transport |
+|---|---|
+| Quick demo with SQLite | Either — `direct` requires no extra setup |
+| No Python drivers installed | `mcp` — avoids driver install entirely |
+| Snowflake with official MCP server | `mcp` — cleaner output, better error messages |
+| Oracle / Athena | `direct` — no official MCP servers yet |
+
+### Step 5a. Configure the connection
+
+In your project's `.claude/db-connections/active.yaml`, set two fields on the connection
+you want to use via MCP:
+
+```yaml
+- name: my-sqlite-db
+  type: sqlite
+  transport: mcp          # Switch from direct to mcp
+  mcp_server: sqlite      # Must match the server name registered in Claude Code
+  sqlite:
+    path: ./data/mydb.db
+```
+
+The `mcp_server` value must match exactly how the server appears in Claude Code's MCP
+settings — it becomes the middle segment of every tool call:
+`mcp__{mcp_server}__read_query`, `mcp__{mcp_server}__list_tables`, etc.
+
+### Step 5b. SQLite MCP quickstart
+
+The official SQLite MCP server (`@modelcontextprotocol/server-sqlite`) is the reference
+implementation. To install and register it:
+
+```bash
+# Install the SQLite MCP server
+npx -y @modelcontextprotocol/server-sqlite /path/to/your.db
+```
+
+Then register it in Claude Code's MCP settings with the name `sqlite`. Once registered,
+set `transport: mcp` and `mcp_server: sqlite` in your `active.yaml`.
+
+### Step 5c. Hooks and safety
+
+No hook changes are needed. The `db-safety` and `db-cost-gate` hooks already intercept
+MCP tool calls — they scan the `query` field in MCP tool inputs the same way they scan
+Bash commands.
+
+### Step 5d. Suppressing approval prompts (optional)
+
+MCP tool calls from within skills will prompt for approval the first time. To suppress
+these prompts, add the specific MCP tool names to the `allowed-tools` frontmatter of the
+relevant skill files in `~/.claude/skills/`:
+
+```yaml
+# In ~/.claude/skills/db-orient/SKILL.md frontmatter:
+allowed-tools:
+  - Read
+  - Bash
+  - Write
+  - mcp__sqlite__read_query
+  - mcp__sqlite__list_tables
+  - mcp__sqlite__describe_table
+```
+
+Repeat for any skill that runs queries (`db-query`, `db-profile`, `db-joins`, etc.).
+
+---
+
 ## Troubleshooting
 
 | Symptom | Likely cause | Fix |
@@ -235,3 +311,5 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 | `/db-orient` not recognized | Skill not installed globally | Re-run the `cp -r install/skills/db-orient ~/.claude/skills/` command in Part 1a |
 | Cost gate not triggering | Dialect not Oracle/Athena | Expected — SQLite has no cost gate |
 | Wrong SQL dialect | Dialect mismatch | Check `type:` in `active.yaml` matches your DB |
+| `/db-use` shows wrong connections | Stale `active.yaml` | Verify `connections:` list in `active.yaml` has all your profiles |
+| `/db-use <name>` says "not found" | Name mismatch | Connection `name:` field is case-sensitive — run `/db-use` with no args to see exact names |
