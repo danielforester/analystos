@@ -110,6 +110,27 @@ scripts/
 - **Sprint 4:** `/db-document`, `/db-capture`, KB index auto-updater
 - **Optional:** `scripts/kb-to-obsidian.py` — Obsidian vault export (no DB access needed)
 
+## Non-Obvious Implementation Notes
+
+### `sample-project/.claude/db-connections/active.yaml` — gitignore behavior
+
+This file is committed in the source repo via `git add -f`, bypassing the
+`sample-project/.gitignore` rule that excludes `.claude/db-connections/active.yaml`.
+
+**Why it's force-added here:** The demo `active.yaml` contains no real credentials — it
+just points to the bundled `demo.db`. It's safe and necessary to commit so the
+sample-project works out of the box.
+
+**What happens when an analyst copies sample-project:** If they initialize their own git
+repo in the copied folder, git will NOT track `active.yaml` (the gitignore applies).
+This is correct — their `active.yaml` will eventually hold real credentials. If they
+need to track a non-sensitive `active.yaml`, they use `git add -f` explicitly.
+
+**Maintenance:** If `active.yaml` is ever regenerated in this source repo, stage it with
+`git add -f sample-project/.claude/db-connections/active.yaml`.
+
+---
+
 ## Supported Databases
 
 | Database | Dialect | Metadata Source | Cost Signal |
