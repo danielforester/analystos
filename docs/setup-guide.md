@@ -22,6 +22,16 @@ and configuring it for your first project.
 The framework's core components (skills and hooks) are installed globally so they're
 available in every project.
 
+**OPTIONAL**:  An install/upgrade script is included:
+```bash
+python scripts/install.py --dry-run
+```
+will tell you what updates would be made (but not make them).
+```bash
+python scripts/install.py
+```
+will do it for real!
+
 ### 1a. Copy skills and hooks
 
 Each skill is a directory containing a `SKILL.md` file — copy the whole directory.

@@ -14,9 +14,71 @@ or orientation summaries.
 ## Inputs
 
 - **Target:** A table name, view name, or nothing (schema-wide introspection)
-- **Scope:** From the active connection's `schema_scope` in `.claude/db-connections/active.yaml`
+- **Schema:** An explicit schema/owner name to introspect. When provided, overrides `schema_scope` for this call.
+- **Scope:** From the active connection's `schema_scope` in `.claude/db-connections/active.yaml` (used when no explicit schema is passed)
 
-If no target is specified, introspect all tables and views in the active schema.
+### Schema Discovery Mode
+
+When called with **no target table** and **no explicit schema**, and the connection has
+more than one schema in scope (or `schema_scope` is unset), do **not** auto-expand into
+full per-table introspection. Instead:
+
+1. Run the schema-list query for the active dialect (see below)
+2. Return the results as a schema inventory table (schema name, table count, view count)
+3. Stop — let the caller (e.g. `/db-orient`) decide which schema to drill into
+
+This prevents an accidental full introspection of a wide-open Oracle or Snowflake
+environment with dozens of schemas.
+
+**Schema-list queries by dialect:**
+
+```sql
+-- Oracle: schemas within schema_scope (omit WHERE clause if scope is unset)
+SELECT owner AS schema_name,
+       COUNT(*) AS table_count
+FROM all_tables
+WHERE owner IN ({schema_scope_list})
+GROUP BY owner
+ORDER BY owner;
+
+-- Snowflake
+SELECT table_schema AS schema_name,
+       COUNT(*) AS table_count
+FROM information_schema.tables
+WHERE table_catalog = CURRENT_DATABASE()
+  AND table_type = 'BASE TABLE'
+GROUP BY table_schema
+ORDER BY table_schema;
+
+-- Athena
+SELECT table_schema AS schema_name,
+       COUNT(*) AS table_count
+FROM information_schema.tables
+WHERE table_type = 'BASE TABLE'
+GROUP BY table_schema
+ORDER BY table_schema;
+```
+
+SQLite has a single implied schema (the database file) — schema discovery mode does
+not apply. Proceed directly to table introspection.
+
+**Schema discovery output format:**
+
+```
+## Available Schemas
+
+| Schema | Tables |
+|--------|--------|
+| FINANCE | 42 |
+| HR | 18 |
+| SALES | 67 |
+
+3 schemas in scope. Pass a schema name to introspect a specific one.
+```
+
+If the scope is unset and the list is long (>10 schemas), add:
+> "⚠️ `schema_scope` is not set in `active.yaml` — showing all accessible schemas.
+> Consider narrowing `schema_scope` to your working set."
 
 ---
 

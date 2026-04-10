@@ -1,6 +1,6 @@
 ---
 name: db-orient
-description: Structured orientation to an unfamiliar database schema. Run /db-orient when you are new to a database and want a complete picture: entity clusters, key relationships, gotchas, and common query patterns. Produces output that can be saved to the knowledge base as _schema-overview.md.
+description: Structured orientation to an unfamiliar database schema. Run /db-orient when you are new to a database and want a complete picture: entity clusters, key relationships, gotchas, and common query patterns. Pass a schema name (/db-orient SALES) to go straight to that schema, or run without an argument to see a schema picker when multiple schemas are in scope. Produces output that can be saved to the knowledge base as _schema-overview.md.
 user-invocable: true
 argument-hint: "[schema_name]"
 allowed-tools:
@@ -22,11 +22,13 @@ the format of `.claude/example_schema/_schema-overview-template.md`.
 ## Behavior Overview
 
 1. Load connection context
-2. Run `db-introspect` across all tables and views in scope
-3. Run `db-sample` on up to 5 representative tables
-4. Check for an existing `_schema-overview.md` in the KB
-5. Synthesize and present the orientation
-6. Offer to save to the knowledge base
+2. Schema discovery — pick a target schema (skip if one was passed as argument)
+3. Table-count gate — warn and focus if the schema is wide (>30 tables)
+4. Run `db-introspect` on the target schema
+5. Run `db-sample` on up to 5 representative tables
+6. Check for an existing `_schema-overview.md` in the KB
+7. Synthesize and present the orientation
+8. Offer to save to the knowledge base
 
 ---
 
@@ -34,20 +36,80 @@ the format of `.claude/example_schema/_schema-overview-template.md`.
 
 Read `.claude/db-connections/active.yaml`. Identify:
 - Active connection name and type
-- `schema_scope` — the schemas/databases to orient to
-- If `schema_name` was passed as an argument, use it; otherwise use the first entry in `schema_scope` (or the SQLite file path's implied schema)
+- `schema_scope` — the schemas/databases configured for this connection
+- Whether a `schema_name` argument was passed by the user
 
 If `active.yaml` does not exist, stop and tell the user:
 > "No active connection found. Please copy `templates/connections.example.yaml` to `.claude/db-connections/active.yaml` and configure your connection."
 
 ---
 
-## Step 2: Run Introspection
+## Step 2: Schema Discovery
 
-Use the `db-introspect` skill to extract metadata for all tables and views in the target schema.
+**Skip this step entirely if:**
+- A schema name was passed as an argument (`/db-orient SALES`) — use it directly, or
+- The connection is SQLite — single-file databases have one implied schema
+
+Otherwise, use `db-introspect` in schema discovery mode (no target table, no explicit
+schema) to get a table count per schema. Present the results:
+
+```
+## Available Schemas — {display_name}
+
+| Schema | Tables |
+|--------|--------|
+| FINANCE | 42 |
+| HR | 18 |
+| SALES | 67 |
+```
+
+Then ask:
+> "Which schema would you like to orient to?"
+
+Accept the schema name as the target for all remaining steps.
+
+**If `schema_scope` is unset or contains more than 5 schemas**, also note:
+> "💡 Tip: Set `schema_scope` in `.claude/db-connections/active.yaml` to your working
+> schemas to skip this picker in future sessions."
+
+**After the user picks a schema**, offer to narrow `active.yaml` for future sessions:
+> "Set `{schema}` as the only schema in `schema_scope` for future sessions? (y/n)"
+
+If yes: read `active.yaml`, update the `schema_scope` field to `[{schema}]`, write it
+back, and confirm: "Updated `schema_scope` to `[{schema}]` in `active.yaml`."
+
+---
+
+## Step 3: Table-Count Gate
+
+Before running full introspection, get the table count for the target schema (this is
+cheap — a single COUNT query against the catalog, not per-table metadata).
+
+**If the schema has ≤ 30 tables:** proceed silently to Step 4.
+
+**If the schema has > 30 tables:** pause and tell the user:
+
+> "`{schema}` has {N} tables. Introspecting everything at once may be slow.
+> Options:
+> - **Focus on a prefix** — e.g. 'sales_' to orient to just the sales tables
+> - **Top tables only** — orient to the {N} largest tables by row count
+> - **All** — introspect everything (may take a moment)
+>
+> How would you like to proceed?"
+
+Apply the user's choice as a filter when calling `db-introspect` in Step 4:
+- **Prefix filter:** pass `table_prefix = '{prefix}'` — introspect only tables whose names start with that string
+- **Top tables:** introspect only tables with the highest row counts (from catalog stats)
+- **All:** no filter
+
+---
+
+## Step 4: Run Introspection
+
+Use the `db-introspect` skill, passing the target schema explicitly.
 
 Tell the user what you are doing:
-> "Introspecting {display_name} — reading table structure, columns, and relationships…"
+> "Introspecting `{schema}` on {display_name} — reading table structure, columns, and relationships…"
 
 Collect from introspection output:
 - All table names and row counts
@@ -57,7 +119,7 @@ Collect from introspection output:
 
 ---
 
-## Step 3: Sample Representative Tables
+## Step 5: Sample Representative Tables
 
 Use the `db-sample` skill on up to **5 tables**, selected as follows:
 1. Prefer tables with the highest row counts (they are likely the core fact/event tables)
@@ -75,7 +137,7 @@ Use the sample output to:
 
 ---
 
-## Step 4: Check Existing KB Entry
+## Step 6: Check Existing KB Entry
 
 Check whether `db-knowledge/{schema}/_schema-overview.md` exists.
 
@@ -87,7 +149,7 @@ If it does not exist: proceed silently.
 
 ---
 
-## Step 5: Synthesize Orientation
+## Step 7: Synthesize Orientation
 
 Produce a structured orientation document following the `.claude/example_schema/_schema-overview-template.md` format.
 Include all sections below. Fill in what you can from introspection; note gaps explicitly rather than omitting sections.
@@ -238,7 +300,7 @@ Scan column names across all tables for these patterns:
 
 ---
 
-## Step 6: Offer to Save
+## Step 8: Offer to Save
 
 After presenting the orientation, always ask:
 
@@ -261,6 +323,6 @@ If the user says **n** or **skip**: acknowledge and move on.
 ## Notes
 
 - Do not speculate beyond what introspection and samples support — use "unknown" or "inferred from column names" to be transparent
-- If the schema has more than 30 tables, group them into clusters first and sample only from the top 5 by row count; offer to drill into specific clusters on request
 - The orientation is a starting point, not a final document — the analyst should review and correct it before sharing with the team
-- Snowflake and Salesforce are not yet fully supported — acknowledge the connection type and offer to proceed with manual guidance if the user wants to explore ahead of Sprint 3
+- The table-count gate (Step 3) and schema picker (Step 2) are both skipped when a schema argument is passed — `/db-orient {schema}` always goes straight to introspection
+- Snowflake and Salesforce are not yet fully supported — acknowledge the connection type and offer to proceed with manual guidance if the user wants to explore ahead of full dialect support
