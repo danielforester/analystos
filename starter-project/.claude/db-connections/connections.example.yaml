@@ -66,20 +66,23 @@ connections:
   # ---------------------------------------------------------------------------
   # AWS Athena — serverless SQL over S3
   # ---------------------------------------------------------------------------
-  - name: athena-analytics
+  - name: awsathena
     type: athena
-    display_name: "Analytics Athena (us-east-1)"
+    display_name: "AWS Athena"
     read_only: true
+    
+    transport: mcp                    # Athena has no official MCP server — but can roll your own!
+    mcp_server: athena                # name of the MCP server in Claude
 
     # transport: direct           # Athena has no official MCP server — use direct.
     # mcp_server:                 # (leave blank for Athena)
 
-    athena:
-      region: us-east-1
-      database: analytics          # Default Glue/Athena database
-      s3_output_location: s3://my-bucket/athena-results/
-      workgroup: primary           # Athena workgroup (controls per-query data limits)
-      aws_profile_env: AWS_PROFILE  # Name of the env var holding the AWS profile name
+    #athena:
+    #  region: us-east-1
+    #  database: analytics          # Default Glue/Athena database
+    #  s3_output_location: s3://my-bucket/athena-results/
+    #  workgroup: primary           # Athena workgroup (controls per-query data limits)
+    #  aws_profile_env: AWS_PROFILE  # Name of the env var holding the AWS profile name
       # Alternatively, use key-based auth:
       # aws_access_key_id_env: AWS_ACCESS_KEY_ID
       # aws_secret_access_key_env: AWS_SECRET_ACCESS_KEY
