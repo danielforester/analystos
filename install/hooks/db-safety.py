@@ -39,7 +39,8 @@ DDL_DML_PATTERNS = [
     # SQLite-specific state changes
     r"\bATTACH\s+DATABASE\b",
     r"\bDETACH\s+DATABASE\b",
-    r"PRAGMA\s+\w+\s*=",  # Any PRAGMA assignment (state change)
+    r"PRAGMA\s+\w+\s*[=(]",  # PRAGMA assignment or function-call syntax (state change)
+    r"\bPRAGMA\s+(?:wal_checkpoint|optimize|shrink_memory|incremental_vacuum)\b",  # State-changing PRAGMAs without arguments
     # Oracle DDL
     r"\bRENAME\s+\w+\s+TO\b",
     r"\bCOMMENT\s+ON\b",
@@ -81,7 +82,7 @@ def extract_sql_candidates(tool_input: dict) -> list[str]:
 
     # Nested structures (e.g., MCP tool args)
     for value in tool_input.values():
-        if isinstance(value, str) and len(value) > 10:
+        if isinstance(value, str) and len(value) > 5:
             candidates.append(value)
         elif isinstance(value, dict):
             candidates.extend(extract_sql_candidates(value))

@@ -1,6 +1,7 @@
 ---
 name: db-introspect
 description: This skill should be used whenever schema metadata is needed before explaining, orienting, querying, or documenting a database object. Apply it to extract columns, types, PKs, FKs, indexes, comments, and row counts from any table or schema. It is the foundation step for /db-orient, /db-explain, /db-query, and /db-document.
+user-invocable: false
 ---
 
 # DB Introspect Skill

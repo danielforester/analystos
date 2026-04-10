@@ -1,6 +1,7 @@
 ---
 name: db-cost-check
 description: This skill should be used before executing any SELECT query on Oracle, Athena, Snowflake, or Salesforce — especially when the db-cost-gate hook fires or when queries touch large tables, wide date ranges, or lack partition filters. Provides dialect-specific cost estimation and a go/no-go decision before execution.
+user-invocable: false
 ---
 
 # DB Cost Check Skill

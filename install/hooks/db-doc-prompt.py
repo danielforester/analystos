@@ -49,7 +49,7 @@ TABLE_NAME_PATTERNS = [
     # "# SCHEMA_NAME — Schema Overview" — extract the schema name
     re.compile(r"#\s+(\w+)\s+—\s+Schema Overview", re.IGNORECASE),
     # "**Schema:** `sales`\n# TABLE_NAME" → fallback: first H1 after metadata
-    re.compile(r"^#\s+([A-Z_][A-Z0-9_]*)\s*$", re.MULTILINE),
+    re.compile(r"^#\s+([A-Za-z_]\w*)\s*$", re.MULTILINE),
 ]
 
 # ── Config path ───────────────────────────────────────────────────────────────

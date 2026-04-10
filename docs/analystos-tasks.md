@@ -1,5 +1,8 @@
 # AnalystOS — Task Breakdown
 
+> **Status: All sprints complete.** This document is retained for historical context.
+> All 18 skills and 4 hooks described below are implemented and installable.
+
 **Version:** 0.1
 **Last Updated:** 2026-04-06
 

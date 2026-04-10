@@ -1,6 +1,7 @@
 ---
 name: db-sample
 description: This skill should be used when representative rows are needed to understand a table's data shape, detect soft-delete patterns, identify snapshot columns, or spot high null rates — typically as a step within /db-orient, /db-explain, /db-document, or /db-gotchas. Always uses row-limiting syntax to avoid full scans.
+user-invocable: false
 ---
 
 # DB Sample Skill

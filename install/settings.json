@@ -10,7 +10,7 @@
     "PreToolUse": [
       {
         "_comment": "Safety hook — blocks DDL/DML SQL before execution",
-        "matcher": ".*",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -20,7 +20,7 @@
       },
       {
         "_comment": "Cost gate — prompts for confirmation before expensive queries on Oracle/Athena",
-        "matcher": ".*",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -32,7 +32,7 @@
     "PostToolUse": [
       {
         "_comment": "Doc prompt — offers to save /db-explain or /db-orient results to the KB",
-        "matcher": ".*",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",
@@ -42,7 +42,7 @@
       },
       {
         "_comment": "Capture prompt — offers to save significant query results to the KB",
-        "matcher": ".*",
+        "matcher": "Bash|mcp__.*",
         "hooks": [
           {
             "type": "command",

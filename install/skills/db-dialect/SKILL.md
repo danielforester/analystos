@@ -1,6 +1,7 @@
 ---
 name: db-dialect
 description: This skill should be used when performing any database work that requires dialect-specific SQL syntax, metadata queries, or cost estimation — including introspecting tables, writing queries, or checking EXPLAIN output. Apply it whenever the active connection type (sqlite, oracle, athena, snowflake, salesforce) determines which SQL forms to use.
+user-invocable: false
 ---
 
 # DB Dialect Skill

@@ -6,16 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This is the **source repository** for AnalystOS — a DB analyst framework and Claude Code extension that turns Claude into a senior data engineer assistant for SQL analysts.
 
-**Sprint 1 (Foundation + Safety) is complete.** The repo now contains installable skills, hooks, per-project templates, and a working demo database. Slash commands (`/db-orient`, etc.) are planned for Sprint 2+.
+**All skills and hooks are implemented.** The repo contains 18 installable skills (10 user-invocable slash commands + 8 internal reference skills), 4 hooks, per-project templates, and a working demo database.
 
 Key reference documents:
 - `docs/analystos-design.md` — Complete vision, principles, component specs
-- `docs/analystos-tasks.md` — Task breakdown and sprint sequencing
 - `docs/setup-guide.md` — **Start here** to install and run the framework
-
-Key files:
-- `docs/analystos-design.md` — Complete vision, principles, component specs, and knowledge base structure
-- `docs/analystos-tasks.md` — Task breakdown and sprint sequencing (Sprints 1–4)
 - `starter-project/.claude/example_schema/` — Template files for new schemas and tables (kept in `.claude/` so they're not confused with real KB content)
 
 ## Core Design Principles
@@ -27,11 +22,11 @@ Key files:
 5. **Database-agnostic core** — Oracle, Snowflake, AWS Athena, Salesforce (SOQL)
 6. **Git-ready** — KB files are designed for version control and team sharing
 
-## Planned Architecture
+## Architecture
 
 The framework delivers three user modes (**Discovery**, **Work**, **Documentation**) through:
 
-### Slash Commands (to be built as Claude Code skills)
+### User-Invocable Slash Commands
 | Command | Purpose |
 |---|---|
 | `/db-orient` | Structured orientation to an unfamiliar database |
@@ -43,13 +38,27 @@ The framework delivers three user modes (**Discovery**, **Work**, **Documentatio
 | `/db-document` | Draft/update data dictionary entries |
 | `/db-capture` | Save a query + context to the knowledge base |
 | `/db-status` | Show active connection and KB state |
+| `/db-use` | Switch the active database connection |
+| `/db-index` | Regenerate the KB index (`db-knowledge/README.md`) |
 
-### Hooks (to be registered in `settings.json`)
+### Internal Reference Skills
+| Skill | Purpose |
+|---|---|
+| `db-dialect` | Dialect-specific SQL syntax and metadata query templates |
+| `db-introspect` | Extract structured schema metadata (columns, types, PKs, FKs) |
+| `db-sample` | Retrieve representative row samples with value summaries |
+| `db-cost-check` | Dialect-specific query cost estimation |
+| `db-doc-writer` | Draft KB markdown entries (used by `/db-document`) |
+| `db-explain-result` | Interpret query results and flag anomalies (used by `/db-query`) |
+| `db-soql` | Salesforce SOQL reference and relationship traversal |
+
+### Hooks (registered in `settings.json`)
 - `pre-tool-use: db-safety` — Confirm read-only before any execution
-- `pre-tool-use: db-cost-gate` — Flag queries that will scan large data
+- `pre-tool-use: db-cost-gate` — Flag queries that will scan large data (Oracle, Athena)
 - `post-tool-use: db-capture-prompt` — Offer to save significant queries
 - `post-tool-use: db-doc-prompt` — Offer to persist explanations
-- `session-start: db-context-loader` — Auto-load KB at session startup
+
+Session context loading (active connection + KB) is handled by the project-level `CLAUDE.md` startup checklist, not a hook.
 
 ### Knowledge Base Layout (target state)
 ```
@@ -103,13 +112,9 @@ scripts/
   kb-to-obsidian.py   # Convert KB to an Obsidian-compatible vault
 ```
 
-## Implementation Sequencing
+## Implementation Status
 
-- **Sprint 1 (complete):** Connection schema, dialect skill, CLAUDE.md template, KB scaffold, gitignore, safety/cost hooks, SQLite demo database
-- **Sprint 2 (next):** `/db-orient`, `/db-explain`, `/db-status`, `db-introspect` + `db-sample` skills
-- **Sprint 3:** `/db-query`, `/db-gotchas`, `/db-profile`, `/db-joins`, Salesforce support
-- **Sprint 4:** `/db-document`, `/db-capture`, KB index auto-updater
-- **Optional:** `scripts/kb-to-obsidian.py` — Obsidian vault export (no DB access needed)
+All planned skills and hooks are implemented. See `docs/analystos-tasks.md` for historical sprint sequencing.
 
 ## Non-Obvious Implementation Notes
 
@@ -137,6 +142,6 @@ need to track a non-sensitive `active.yaml`, they use `git add -f` explicitly.
 | Database | Dialect | Metadata Source | Cost Signal |
 |---|---|---|---|
 | Oracle | Oracle SQL | `ALL_TABLES`, `ALL_COLUMNS`, `ALL_COMMENTS` | EXPLAIN PLAN row estimates |
-| Snowflake | Snowflake SQL | `INFORMATION_SCHEMA`, `SHOW OBJECTS` | `BYTES_SCANNED` via query profile |
+| Snowflake | Snowflake SQL | `INFORMATION_SCHEMA`, `SHOW OBJECTS` | Manual via `/db-cost-check` (no automatic gate) |
 | AWS Athena | Presto/Trino | Glue Catalog, `INFORMATION_SCHEMA` | Data scanned via EXPLAIN |
 | Salesforce | SOQL | `describeSObject`, REST API | Record count / API governor limits |

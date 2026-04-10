@@ -1,6 +1,7 @@
 ---
 name: db-doc-writer
 description: This skill should be used when drafting or updating a per-table knowledge base entry (a {table}.md data dictionary file). It is the writing engine for /db-document — apply it after db-introspect and db-sample have run, passing their output plus any analyst-provided context to produce a structured KB entry ready for review.
+user-invocable: false
 ---
 
 # DB Doc Writer Skill

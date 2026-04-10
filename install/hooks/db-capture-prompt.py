@@ -122,7 +122,7 @@ def mark_offered(sig: str) -> None:
 def extract_row_count(text: str) -> int | None:
     """Try to parse a row count from the assistant message or tool result."""
     # Count rows in a markdown table (subtract header and separator rows)
-    table_rows = re.findall(r"^\|[^|]+\|", text, re.MULTILINE)
+    table_rows = re.findall(r"^\|.+\|$", text, re.MULTILINE)
     if len(table_rows) > 2:
         # Subtract header row + separator row
         return len(table_rows) - 2

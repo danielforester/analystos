@@ -103,7 +103,7 @@ def user_confirmed(hook_data: dict) -> bool:
     """Check if the user has already acknowledged cost and confirmed."""
     user_message = (hook_data.get("user_message", "") or "").lower()
     for phrase in CONFIRM_PHRASES:
-        if phrase in user_message:
+        if re.search(r'\b' + re.escape(phrase) + r'\b', user_message):
             return True
     return False
 
@@ -188,7 +188,8 @@ def main():
     # Block and ask Claude to run a cost check before proceeding
     threshold_desc = format_threshold(conn)
     display_name = conn.get("display_name", db_type.title())
-    sql_preview = sql.strip()[:200] + ("..." if len(sql.strip()) > 200 else "")
+    stripped = sql.strip()
+    sql_preview = stripped[:200] + ("..." if len(stripped) > 200 else "")
 
     message = (
         f"⚠️ **Cost check required before executing**\n\n"

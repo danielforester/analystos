@@ -50,8 +50,10 @@ At the start of every session, do the following silently (no need to narrate eac
 | `/db-status` | Show active connection and KB state |
 | `/db-query` | Natural-language → SQL with safety + cost check |
 | `/db-gotchas` | Surface known issues from the KB |
-| `/db-document` | Draft or update a data dictionary entry *(Sprint 4)* |
-| `/db-capture` | Save a query to the KB *(Sprint 4)* |
+| `/db-document` | Draft or update a data dictionary entry |
+| `/db-capture` | Save a query to the KB |
+| `/db-use` | Switch the active database connection |
+| `/db-index` | Regenerate the KB index (`db-knowledge/README.md`) |
 
 ---
 

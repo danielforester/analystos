@@ -50,7 +50,7 @@ Findings accumulate in `db-knowledge/` — plain markdown files, one per table. 
 |---|---|
 | **SQLite** | Bundled demo database — no credentials needed |
 | **Oracle** | Full support: dialect, metadata, EXPLAIN PLAN cost estimation |
-| **Snowflake** | Full support: INFORMATION_SCHEMA, bytes-scanned cost gate |
+| **Snowflake** | Full support: INFORMATION_SCHEMA, manual cost check via `/db-cost-check` |
 | **AWS Athena** | Full support: Glue catalog, partition-filter cost gate |
 | **Salesforce** | SOQL support: describeSObject, relationship traversal, governor limit awareness |
 
