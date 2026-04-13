@@ -115,32 +115,59 @@ connections:
 
   # ---------------------------------------------------------------------------
   # Snowflake — cloud data warehouse
+  # Run queries via: python scripts/snowflake_connect.py --query "..." --format csv
   # ---------------------------------------------------------------------------
   - name: snowflake-dw
     type: snowflake
     display_name: "Data Warehouse (Snowflake)"
     read_only: true
 
-    # transport: direct           # direct | mcp
-    # mcp_server: snowflake       # For the official Snowflake MCP server, name is typically "snowflake".
-    #                             # Tool names: mcp__snowflake__execute_query, mcp__snowflake__list_tables
+    transport: direct               # Use the snowflake_connect.py wrapper script
+    # transport: mcp                # Or route through the official Snowflake MCP server
+    # mcp_server: snowflake         # MCP server name (tool names: mcp__snowflake__execute_query, etc.)
 
     snowflake:
       account: myorg-myaccount      # Account identifier: <org>-<account> or <account>.<region>
       warehouse: ANALYST_WH         # Virtual warehouse to use for queries
       database: ANALYTICS           # Default database
       schema: PUBLIC                # Default schema (can be overridden per query)
-      user_env: SNOWFLAKE_USER      # Name of the env var holding the username
-      password_env: SNOWFLAKE_PASSWORD  # Name of the env var holding the password
       role: ANALYST                 # Snowflake role to assume (controls what objects are visible)
-      # Alternatively, use key-pair auth:
-      # private_key_path_env: SNOWFLAKE_PRIVATE_KEY_PATH
-      # private_key_passphrase_env: SNOWFLAKE_PRIVATE_KEY_PASSPHRASE
+
+      # ── Auth mode ────────────────────────────────────────────────────────────
+      # password — user + password from env vars (most common for interactive use)
+      # keypair  — JWT via PEM private key; no browser, best for CI/CD / service accounts
+      # sso      — externalbrowser; opens a browser tab for SAML/OAuth SSO login
+      # oauth    — pre-obtained OAuth token from env var (external IdP / service accounts)
+      auth_mode: password
+
+      # ── password mode ────────────────────────────────────────────────────────
+      user_env: SNOWFLAKE_USER        # env var holding the username
+      password_env: SNOWFLAKE_PASSWORD  # env var holding the password
+
+      # ── keypair mode (no browser; great for automation) ───────────────────────
+      # auth_mode: keypair
+      # user_env: SNOWFLAKE_USER
+      # private_key_path_env: SNOWFLAKE_PRIVATE_KEY_PATH     # env var holding path to PEM file
+      # private_key_passphrase_env: SNOWFLAKE_KEY_PASSPHRASE # omit if key is unencrypted
+
+      # ── sso mode (opens browser tab) ─────────────────────────────────────────
+      # auth_mode: sso
+      # user_env: SNOWFLAKE_USER
+      # login_timeout: 60            # seconds to wait for browser login (default 60)
+
+      # ── oauth mode (pre-obtained token) ──────────────────────────────────────
+      # auth_mode: oauth
+      # user_env: SNOWFLAKE_USER
+      # token_env: SNOWFLAKE_OAUTH_TOKEN   # env var holding the bearer token
+
+      fetch_size: 1000              # Rows per network round-trip (tune for performance)
 
     cost_thresholds:
-      warn_rows: 10000000           # Warn when source table has > 10M rows (proxy for scan cost)
+      warn_bytes: 10737418240       # Warn when EXPLAIN estimates > 10 GB scanned (10 * 1024^3)
+      warn_rows: 10000000           # Warn when source table has > 10M rows (fallback proxy)
       # Snowflake cost = warehouse credits per second. Larger warehouses burn faster.
       # XSMALL: 1 credit/hr. LARGE: 8 credits/hr. Check your org's credit rate.
+      # EXPLAIN USING TABULAR provides bytesAssigned as the primary cost signal.
 
   # ---------------------------------------------------------------------------
   # Salesforce — CRM and business object platform (SOQL, not SQL)

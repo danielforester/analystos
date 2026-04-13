@@ -154,7 +154,31 @@ Snowflake pricing is compute-based (credits per second of warehouse time) rather
 purely data-volume-based, but bytes scanned is still the best proxy for cost estimation
 before execution.
 
-### Step 1: Check row count from INFORMATION_SCHEMA
+### Step 1: Run EXPLAIN USING TABULAR via the wrapper script
+
+```bash
+python scripts/snowflake_connect.py --query "{paste the query here}" --explain
+```
+
+The script runs `EXPLAIN USING TABULAR` (does not execute the query), aggregates
+`bytesAssigned` across all plan rows, and prints structured output:
+
+```
+EXPLAIN output:
+{tabular plan as CSV}
+---
+estimated_bytes: 536870912
+estimated_gb: 0.50
+partitions_total: 50
+```
+
+Read `estimated_bytes:` and `estimated_gb:` for cost comparison against `warn_bytes`.
+Read `partitions_total:` to understand how many micro-partitions will be scanned.
+If the script prints `estimated_bytes: unknown`, the plan could not be parsed — fall back to Step 2.
+
+### Step 2: Fallback — Check row count from INFORMATION_SCHEMA
+
+Use this when EXPLAIN is unavailable or the query is a simple single-table scan:
 
 ```sql
 SELECT row_count, bytes
@@ -162,42 +186,39 @@ FROM {database}.information_schema.tables
 WHERE table_schema = '{SCHEMA}' AND table_name = '{TABLE}';
 ```
 
-Use this for the primary table(s) in the query's FROM clause. Compare `row_count`
-against `warn_rows` from `active.yaml`.
-
-### Step 2: Run EXPLAIN (optional, for complex queries)
-
-```sql
-EXPLAIN {your_query};
-```
-
-Parse the JSON output for `"statistics": {"partitionsTotal": N, "bytesAssigned": N}`.
-Note: Snowflake EXPLAIN output is JSON; extract `bytesAssigned` if present.
+Compare `row_count` against `warn_rows` from `active.yaml` as a proxy for scan cost.
 
 ### Step 3: Report to the analyst
 
 ```
 📊 Snowflake Cost Estimate
 ━━━━━━━━━━━━━━━━━━━━━━━━━
-Estimated rows (source): {row_count from INFORMATION_SCHEMA, formatted with commas}
-Estimated bytes         : {bytes, formatted as GB if > 1 GB}
-Warehouse               : {warehouse from active.yaml if available}
-Threshold               : {warn_rows from active connection}
+Estimated bytes scanned : {estimated_gb} GB  (from EXPLAIN USING TABULAR)
+Partitions to scan      : {partitions_total}
+Warehouse               : {warehouse from active.yaml}
+Threshold (bytes)       : {warn_bytes from active connection, formatted as GB}
+Threshold (rows)        : {warn_rows from active connection, formatted with commas}
 Result                  : {WITHIN THRESHOLD ✅ | EXCEEDS THRESHOLD ⚠️}
 ```
 
-If the estimate **exceeds** `warn_rows`:
-> "⚠️ The source table has **{N}** rows, which exceeds your configured threshold of {warn_rows}.
-> Snowflake cost depends on warehouse size and query complexity. Type **\"cost confirmed\"** to
-> proceed, or:
-> - Add WHERE filters to reduce rows scanned
+If the estimate **exceeds** `warn_bytes`:
+> "⚠️ This query is estimated to scan **{X} GB**, which exceeds your configured threshold of
+> {threshold_gb} GB. Snowflake cost depends on warehouse size and query complexity.
+> Type **\"cost confirmed\"** to proceed, or:
+> - Add WHERE filters to reduce partitions scanned
 > - Use `SAMPLE (1)` for exploratory queries (returns ~1% of rows)
-> - Use `APPROX_COUNT_DISTINCT()` instead of exact `COUNT(DISTINCT)` for large aggregations"
+> - Use `APPROX_COUNT_DISTINCT()` instead of exact `COUNT(DISTINCT)` for large aggregations
+> - Select only needed columns instead of `SELECT *`"
+
+If only `warn_rows` is configured and source table **exceeds** `warn_rows`:
+> "⚠️ The source table has **{N}** rows, which exceeds your configured threshold of {warn_rows}.
+> Type **\"cost confirmed\"** to proceed."
 
 ### Notes
 - Snowflake caches query results — identical queries within 24 hours are free (no recompute)
-- Clustering keys on large tables can dramatically reduce bytes scanned; check `SHOW TABLES` for `clustering_key`
+- Clustering keys on large tables can dramatically reduce partitions scanned; check `SHOW TABLES` for `clustering_key`
 - Virtual warehouse size affects speed and credit burn — `XSMALL` is fine for most analytical queries
+- `EXPLAIN USING TABULAR` never charges credits — always prefer it over guessing from row counts
 
 ---
 

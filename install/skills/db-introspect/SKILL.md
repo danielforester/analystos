@@ -253,6 +253,41 @@ SHOW PARTITIONS {database}.{table};
 
 Athena has no column comments or FK constraints in the catalog. Note this in output. Partition columns are critical for cost-aware querying — always extract and highlight them.
 
+### Snowflake
+
+**If `transport: direct`** — execute each query via the wrapper script:
+
+```bash
+python scripts/snowflake_connect.py --query "{sql}" --format csv
+```
+
+Metadata queries:
+
+```sql
+-- All tables in a schema with row counts
+SELECT table_name, table_type, row_count, bytes, comment
+FROM {database}.information_schema.tables
+WHERE table_schema = '{SCHEMA}'
+ORDER BY table_name;
+
+-- Columns for a specific table (includes column comments)
+SELECT column_name, data_type, is_nullable, column_default, ordinal_position, comment
+FROM {database}.information_schema.columns
+WHERE table_schema = '{SCHEMA}' AND table_name = '{TABLE}'
+ORDER BY ordinal_position;
+
+-- Primary keys (Snowflake tracks but does not enforce)
+SHOW PRIMARY KEYS IN TABLE {database}.{schema}.{table};
+
+-- Foreign keys (tracked, not enforced)
+SHOW IMPORTED KEYS IN TABLE {database}.{schema}.{table};
+
+-- Clustering keys (affects micro-partition pruning and scan cost)
+SHOW TABLES LIKE '{table}' IN SCHEMA {database}.{schema};
+```
+
+Note: `row_count` from `information_schema.tables` is maintained automatically by Snowflake and is generally accurate. PKs and FKs are tracked as metadata but not enforced — note this in output.
+
 ---
 
 ## Step 3: Format Output

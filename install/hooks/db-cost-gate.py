@@ -40,7 +40,7 @@ CONFIRM_PHRASES = [
 ]
 
 # ── Dialects that have real cost signals ─────────────────────────────────────
-COST_SIGNAL_DIALECTS = {"oracle", "athena"}
+COST_SIGNAL_DIALECTS = {"oracle", "athena", "snowflake"}
 
 # ── Connections config path (relative to project root) ───────────────────────
 CONNECTIONS_PATH = Path(".claude/db-connections/active.yaml")
@@ -123,6 +123,17 @@ def format_threshold(conn: dict) -> str:
         if raw_bytes:
             gb = raw_bytes / (1024 ** 3)
             return f"{gb:.1f} GB scanned"
+
+    if db_type == "snowflake":
+        # Primary signal: bytes from EXPLAIN USING TABULAR
+        raw_bytes = thresholds.get("warn_bytes")
+        if raw_bytes:
+            gb = raw_bytes / (1024 ** 3)
+            return f"{gb:.1f} GB scanned (EXPLAIN estimate)"
+        # Fallback: row count from INFORMATION_SCHEMA
+        rows = thresholds.get("warn_rows")
+        if rows:
+            return f"{rows:,} rows (source table estimate)"
 
     return "the configured threshold"
 

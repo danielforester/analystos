@@ -55,7 +55,10 @@ the partition key for samples — the goal is to see representative data across 
   inherently cheap. Still route through the `db-cost-gate` hook path (it is in the hook
   chain regardless). If the gate fires, note that this is a bounded sample query and the
   actual scan will be minimal.
-- **Snowflake / Salesforce:** Not yet implemented — note this and ask the user if they
+- **Snowflake:** Sampling queries with `LIMIT N` are cheap (micro-partition pruning limits scan).
+  Still route through the `db-cost-gate` hook path (it is in the hook chain regardless).
+  If the gate fires, note that this is a bounded sample query and actual scan will be minimal.
+- **Salesforce:** Not yet implemented — note this and ask the user if they
   want to proceed with a manual query.
 
 ---
@@ -78,6 +81,10 @@ python scripts/athena_connect.py --query "SELECT {columns} FROM {database}.{tabl
 For Oracle (`type: oracle`), always use the wrapper script:
 ```bash
 python scripts/oracle_connect.py --query "SELECT {columns} FROM {SCHEMA}.{table} FETCH FIRST {n} ROWS ONLY" --format csv
+```
+For Snowflake (`type: snowflake`), always use the wrapper script:
+```bash
+python scripts/snowflake_connect.py --query "SELECT {columns} FROM {schema}.{table} LIMIT {n}" --format csv
 ```
 
 In both cases, if the query fails:

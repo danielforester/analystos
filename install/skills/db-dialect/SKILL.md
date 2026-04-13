@@ -303,16 +303,55 @@ SELECT
 FROM {database}.{schema}.{table};
 ```
 
-### Cost Signal — EXPLAIN
+### Execution (`transport: direct`)
 
-```sql
-EXPLAIN {your_query};
+Run queries via the Snowflake wrapper script:
+
+```bash
+python scripts/snowflake_connect.py --query "{sql}" --format csv --limit 1000
 ```
 
-Parse the EXPLAIN output for `bytesAssigned` or `partitionsTotal`. Snowflake does not report
-bytes scanned directly in EXPLAIN text — use `row_count` from `information_schema.tables` and
-the `warn_rows` threshold as a proxy. For precise cost monitoring, use Snowflake's
-`QUERY_HISTORY` view after execution:
+For JSON output or unlimited rows:
+```bash
+python scripts/snowflake_connect.py --query "{sql}" --format json --limit 0
+```
+
+Override warehouse, schema, or role for a single call:
+```bash
+python scripts/snowflake_connect.py --query "{sql}" --warehouse LARGE_WH --schema SALES --role ANALYST
+```
+
+The script reads auth config from `.claude/db-connections/active.yaml` automatically.
+Exit code 0 = success; non-zero = error (check stderr for details).
+
+### Cost Signal — EXPLAIN USING TABULAR
+
+Use the wrapper's `--explain` flag to run EXPLAIN USING TABULAR and get structured byte/partition estimates:
+
+```bash
+python scripts/snowflake_connect.py --query "{sql}" --explain
+```
+
+The script runs `EXPLAIN USING TABULAR`, aggregates `bytesAssigned` (sum across all plan rows)
+and `partitionsTotal` (max across all plan rows), then prints structured output:
+
+```
+EXPLAIN output:
+{tabular plan as CSV}
+---
+estimated_bytes: 536870912
+estimated_gb: 0.50
+partitions_total: 50
+```
+
+Parse `estimated_bytes:` and `partitions_total:` from stdout.
+EXPLAIN USING TABULAR does **not** execute the query — it is always cost-free to run.
+
+**Threshold check (bytes):** If `estimated_bytes > warn_bytes` from `active.yaml`, surface a warning.
+**Threshold check (rows fallback):** If EXPLAIN is unavailable, use `row_count` from
+`information_schema.tables` and compare against `warn_rows`.
+
+For post-execution monitoring, use Snowflake's `QUERY_HISTORY` view:
 
 ```sql
 SELECT query_text, bytes_scanned, credits_used_cloud_services, total_elapsed_time
@@ -321,9 +360,6 @@ WHERE start_time >= DATEADD('hour', -1, CURRENT_TIMESTAMP())
 ORDER BY start_time DESC
 LIMIT 10;
 ```
-
-**Threshold check:** If `information_schema.tables.row_count > warn_rows`, surface a warning
-before executing the full query.
 
 ### Notes
 - Always qualify table names: `{database}.{schema}.{table}`
