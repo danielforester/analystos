@@ -123,22 +123,43 @@ WHERE c.constraint_type = 'R'
 SELECT * FROM {SCHEMA}.{TABLE} WHERE ROWNUM <= 10;
 ```
 
+### Execution (`transport: direct`)
+
+Run queries via the Oracle wrapper script:
+
+```bash
+python scripts/oracle_connect.py --query "{sql}" --format csv --limit 1000
+```
+
+For JSON output or unlimited rows:
+```bash
+python scripts/oracle_connect.py --query "{sql}" --format json --limit 0
+```
+
+The script reads auth config from `.claude/db-connections/active.yaml` automatically.
+Exit code 0 = success; non-zero = error (check stderr for details).
+
 ### Cost Signal — EXPLAIN PLAN
 
-```sql
--- Step 1: Generate plan (does not execute the query)
-EXPLAIN PLAN FOR
-{your_query};
+Use the wrapper's `--explain` flag to run EXPLAIN PLAN and get a structured estimate:
 
--- Step 2: Read the plan
-SELECT operation, options, object_name, cardinality, bytes, cost
-FROM plan_table
-WHERE plan_id = (SELECT MAX(plan_id) FROM plan_table)
-ORDER BY id;
-
--- The root row (id=0) cardinality is the total row estimate.
--- Compare against cost_thresholds.warn_rows from connections.yaml.
+```bash
+python scripts/oracle_connect.py --query "{sql}" --explain
 ```
+
+The script runs `EXPLAIN PLAN FOR`, reads `DBMS_XPLAN.DISPLAY()` and `plan_table`,
+then prints structured output:
+
+```
+EXPLAIN PLAN output:
+{plan text from DBMS_XPLAN.DISPLAY()}
+---
+estimated_rows: 5,000,000
+full_table_scans: ORDERS, CUSTOMERS
+```
+
+Parse `estimated_rows:` for cost comparison against `warn_rows`. Flag any tables
+listed under `full_table_scans:` as high-risk even if row count is within threshold.
 
 **Threshold check:** If root `cardinality > warn_rows`, surface a warning and ask for confirmation before running the full query.
 

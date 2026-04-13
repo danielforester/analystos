@@ -75,6 +75,10 @@ For Athena (`type: athena`), always use the wrapper script:
 ```bash
 python scripts/athena_connect.py --query "SELECT {columns} FROM {database}.{table} LIMIT {n}" --format csv
 ```
+For Oracle (`type: oracle`), always use the wrapper script:
+```bash
+python scripts/oracle_connect.py --query "SELECT {columns} FROM {SCHEMA}.{table} FETCH FIRST {n} ROWS ONLY" --format csv
+```
 
 In both cases, if the query fails:
 - Permission error: Report "⚠️ Cannot sample {table} — permission denied"

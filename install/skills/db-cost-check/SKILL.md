@@ -24,32 +24,33 @@ accidentally triggering expensive scans or hitting governor limits.
 
 ## Oracle — Cost Estimation
 
-### Step 1: Run EXPLAIN PLAN
+### Step 1: Run EXPLAIN PLAN via the wrapper script
 
-```sql
-EXPLAIN PLAN FOR
-{paste the query here};
+```bash
+python scripts/oracle_connect.py --query "{paste the query here}" --explain
 ```
 
-This does **not** execute the query. It populates `PLAN_TABLE`.
+The script runs `EXPLAIN PLAN FOR` (does not execute the query), reads the plan via
+`DBMS_XPLAN.DISPLAY()`, and prints structured output:
 
-### Step 2: Read the plan
+```
+EXPLAIN PLAN output:
+{plan text}
+---
+estimated_rows: 5,000,000
+full_table_scans: ORDERS, CUSTOMERS
+```
 
-```sql
-SELECT
-    id,
-    parent_id,
-    operation,
-    options,
-    object_owner || '.' || object_name AS object,
-    cardinality          AS est_rows,
-    bytes                AS est_bytes,
-    cost                 AS relative_cost,
-    partition_start,
-    partition_stop
-FROM plan_table
-WHERE plan_id = (SELECT MAX(plan_id) FROM plan_table)
-ORDER BY id;
+Read `estimated_rows:` for the root cardinality and `full_table_scans:` for high-risk
+table access patterns. If the script prints `estimated_rows: unknown`, the plan table
+could not be read — ask the analyst if they want to proceed without an estimate.
+
+### Step 2: (No longer needed — handled by wrapper)
+
+The wrapper reads `plan_table` automatically. For deeper plan inspection, use:
+
+```bash
+python scripts/oracle_connect.py --query "SELECT operation, options, object_name, cardinality, cost FROM plan_table WHERE plan_id = (SELECT MAX(plan_id) FROM plan_table) ORDER BY id" --format csv
 ```
 
 ### Step 3: Interpret

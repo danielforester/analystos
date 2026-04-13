@@ -37,28 +37,40 @@ connections:
     cost_thresholds: ~
 
   # ---------------------------------------------------------------------------
-  # Oracle — typical on-prem or cloud Oracle DB
+  # Oracle — on-prem or Oracle Cloud (python-oracledb, thin mode by default)
+  # Run queries via: python scripts/oracle_connect.py --query "..." --format csv
   # ---------------------------------------------------------------------------
   - name: oracle-prod
     type: oracle
     display_name: "Production Oracle"
     read_only: true
-
-    # transport: direct           # Oracle has no official MCP server — use direct.
-    # mcp_server:                 # (leave blank for Oracle)
+    transport: direct               # Use the oracle_connect.py wrapper script
 
     oracle:
       host: db.example.com
       port: 1521
-      service_name: ORCL           # Or use sid: instead of service_name:
-      user_env: ORACLE_USER        # Name of the env var holding the username
-      password_env: ORACLE_PASSWORD  # Name of the env var holding the password
-      schema_scope:                # Limit introspection to these schemas (leave empty for all accessible)
+      service_name: ORCL           # preferred; or use sid: for legacy instances
+      auth_mode: password          # Options: password | wallet | tns
+
+      # ── password mode (standard on-prem) ──────────────────────────────────
+      user_env: ORACLE_USER        # env var holding the username
+      password_env: ORACLE_PASSWORD  # env var holding the password
+
+      # ── wallet mode (Oracle Cloud Autonomous DB / mTLS) ───────────────────
+      # auth_mode: wallet
+      # wallet_location: /path/to/wallet   # directory containing cwallet.sso / ewallet.p12
+      # wallet_password_env: ORACLE_WALLET_PASSWORD   # omit if wallet has no password
+
+      # ── tns mode (centralised tnsnames.ora on-prem) ───────────────────────
+      # auth_mode: tns
+      # tns_alias: MY_DB_ALIAS             # alias from tnsnames.ora
+      # tns_admin_env: TNS_ADMIN           # env var pointing to tnsnames.ora directory
+
+      schema_scope:                # Limit introspection to these schemas (empty = all accessible)
         - SALES
         - HR
-      # Optional: use a wallet/TNS alias instead of host+port
-      # tns_alias: MY_DB_ALIAS
-      # wallet_location: /path/to/wallet
+      fetch_size: 1000             # Rows per network round-trip (tune for performance)
+      thick_mode: false            # true requires Oracle Instant Client on PATH
 
     cost_thresholds:
       warn_rows: 5000000           # Warn when EXPLAIN PLAN estimates > 5M rows

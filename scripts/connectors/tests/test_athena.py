@@ -19,16 +19,18 @@ import yaml
 from scripts.connectors.athena import (
     AthenaConfig,
     AthenaRunner,
+    _to_bytes,
+    build_boto3_session,
+    extract_bytes_from_explain,
+    load_config,
+)
+from scripts.connectors.common import (
     AuthError,
     ConfigError,
     NetworkError,
     QueryError,
     TimeoutError,
-    _to_bytes,
-    build_boto3_session,
-    extract_bytes_from_explain,
     format_results,
-    load_config,
 )
 
 

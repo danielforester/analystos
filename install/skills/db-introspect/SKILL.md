@@ -145,6 +145,14 @@ SQLite has no native table comments. Column type strings are loose (affinity-bas
 
 ### Oracle
 
+**If `transport: direct`** — execute each query via the wrapper script:
+
+```bash
+python scripts/oracle_connect.py --query "{sql}" --format csv
+```
+
+Metadata queries:
+
 ```sql
 -- All tables in scope
 SELECT owner, table_name, num_rows, last_analyzed
