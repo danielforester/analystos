@@ -6,10 +6,17 @@ Copies skills and hooks from install/ into ~/.claude/ and merges the
 hooks block into ~/.claude/settings.json. Safe to re-run for upgrades.
 
 Usage:
-    python scripts/install.py           # Install or upgrade
-    python scripts/install.py --dry-run # Preview changes without writing
+    python scripts/install.py                          # Install or upgrade global components
+    python scripts/install.py --project-dir PATH       # Also copy connector scripts into a project
+    python scripts/install.py --dry-run                # Preview changes without writing
+    python scripts/install.py --project-dir PATH --dry-run
+
+Connector scripts (athena_connect.py, oracle_connect.py, snowflake_connect.py)
+are project-local — skills call them via relative paths (e.g. python scripts/oracle_connect.py).
+Without --project-dir, they are NOT installed and existing project copies will not be updated.
 """
 
+import argparse
 import json
 import shutil
 import stat
@@ -155,8 +162,64 @@ def merge_settings(dry: bool) -> None:
 # Main
 # ---------------------------------------------------------------------------
 
+def install_connectors(project_dir: Path, dry: bool) -> None:
+    """Copy connector scripts and the connectors package into a project's scripts/ directory."""
+    scripts_src = REPO_ROOT / "scripts"
+    scripts_dst = project_dir / "scripts"
+
+    if not dry:
+        scripts_dst.mkdir(parents=True, exist_ok=True)
+
+    # Copy the connectors package (common.py, athena.py, oracle.py, snowflake.py, tests/)
+    connectors_src = scripts_src / "connectors"
+    connectors_dst = scripts_dst / "connectors"
+    if connectors_src.is_dir():
+        action = "upgrade" if connectors_dst.exists() else "install"
+        _echo(action, f"scripts/connectors/  -> {connectors_dst}", dry)
+        if not dry:
+            if connectors_dst.exists():
+                shutil.rmtree(connectors_dst)
+            shutil.copytree(connectors_src, connectors_dst)
+    else:
+        print(f"  WARNING  connectors source not found: {connectors_src}")
+
+    # Copy top-level *_connect.py CLI wrappers
+    wrappers = sorted(scripts_src.glob("*_connect.py"))
+    if not wrappers:
+        print(f"  WARNING  no *_connect.py wrappers found in {scripts_src}")
+    for wrapper in wrappers:
+        target = scripts_dst / wrapper.name
+        action = "upgrade" if target.exists() else "install"
+        _echo(action, f"scripts/{wrapper.name}", dry)
+        if not dry:
+            shutil.copy2(wrapper, target)
+
+
 def main() -> None:
-    dry = "--dry-run" in sys.argv
+    parser = argparse.ArgumentParser(
+        prog="install",
+        description="Install or upgrade AnalystOS skills, hooks, and connector scripts.",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview changes without writing any files",
+    )
+    parser.add_argument(
+        "--project-dir",
+        metavar="PATH",
+        type=Path,
+        default=None,
+        help=(
+            "Copy connector scripts into this project directory. "
+            "Without this flag, connectors are not installed and existing project copies "
+            "will not receive updates."
+        ),
+    )
+    args = parser.parse_args()
+    dry = args.dry_run
+    project_dir = args.project_dir
 
     if dry:
         print("DRY RUN — no files will be written\n")
@@ -173,6 +236,18 @@ def main() -> None:
 
     print("\nsettings.json:")
     merge_settings(dry)
+
+    if project_dir is not None:
+        print(f"\nConnector scripts -> {project_dir}:")
+        install_connectors(project_dir, dry)
+    else:
+        print(
+            "\nNOTE: --project-dir not specified. Connector scripts "
+            "(athena_connect.py, oracle_connect.py, snowflake_connect.py) "
+            "were NOT installed.\n"
+            "      Existing projects will not receive connector updates until you run:\n"
+            f"      python scripts/install.py --project-dir /path/to/your/project"
+        )
 
     print("\nDone." if not dry else "\nDry run complete — rerun without --dry-run to apply.")
 
