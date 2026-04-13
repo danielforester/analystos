@@ -143,28 +143,25 @@ $EDITOR .claude/db-connections/active.yaml
 
 - Set `active:` to the name of your connection (e.g., `oracle-prod`)
 - Add a connection profile under `connections:` — use `connections.example.yaml` as reference
-- Fill in your database host, credentials as env var names, and schema scope
+- Fill in your database host, credentials, and schema scope
 - Set cost thresholds appropriate for your environment
 
-**Never commit `active.yaml` in your own project** — it's gitignored by default (see `.gitignore`).
+**Never commit `active.yaml` in your own project** — it's gitignored by default (see `.gitignore`),
+so it's safe to store credentials directly in the file.
 
-### 2c. Set credential environment variables
-
-Add your credentials to your shell profile (`~/.bashrc`, `~/.zshrc`, etc.):
-
-```bash
-# Oracle example
-export ORACLE_USER=my_read_only_user
-export ORACLE_PASSWORD=my_password
-
-# Athena example
-export AWS_PROFILE=my-analytics-profile
+**Oracle credentials** go directly in `active.yaml`:
+```yaml
+oracle:
+  user: my_read_only_user
+  password: my_password
+  host: db.example.com
+  ...
 ```
+If `user` or `password` are absent, the connector will prompt for them interactively.
 
-Or use a `.env` file at the project root (also gitignored):
+**Athena** uses your AWS profile — no credentials needed in `active.yaml`:
 ```bash
-ORACLE_USER=my_read_only_user
-ORACLE_PASSWORD=my_password
+aws sso login --profile my-analytics-profile
 ```
 
 ---

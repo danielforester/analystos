@@ -3,7 +3,7 @@ Oracle connectivity core for AnalystOS.
 
 Uses python-oracledb in thin mode by default (no Oracle Instant Client required).
 Supports three auth modes:
-  - password  — user + password resolved from env vars (on-prem, standard)
+  - password  — user + password stored inline in active.yaml (on-prem, standard)
   - wallet    — mTLS wallet, no username/password (Oracle Cloud Autonomous DB)
   - tns       — named TNS alias with tnsnames.ora (on-prem centralised config)
 
@@ -14,7 +14,9 @@ Oracle queries are synchronous — no polling required.
 
 from __future__ import annotations
 
+import getpass
 import os
+import sys
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -77,12 +79,12 @@ class OracleConfig:
 
     # Auth
     auth_mode: str = "password"     # password | wallet | tns
-    user_env: str = "ORACLE_USER"
-    password_env: str = "ORACLE_PASSWORD"
+    user: str = ""                  # username (set in active.yaml)
+    password: str = ""              # password (set in active.yaml — file is gitignored)
     wallet_location: str = ""
-    wallet_password_env: str = ""   # empty = wallet has no password
+    wallet_password: str = ""       # wallet password (set in active.yaml)
     tns_alias: str = ""
-    tns_admin_env: str = ""         # env var pointing to TNS_ADMIN directory
+    tns_admin_env: str = ""         # env var pointing to TNS_ADMIN directory (not a secret)
 
     # Runtime
     schema_scope: list[str] = field(default_factory=list)
@@ -116,15 +118,15 @@ def load_config(config_path: Path) -> OracleConfig:
             f"Unknown Oracle auth_mode '{auth_mode}'. Must be: password, wallet, or tns."
         )
 
-    # Validate required fields per auth mode
+    # Validate required fields per auth mode.
+    # user/password are not required here — they may be absent and prompted at connect time.
     if auth_mode == "password":
-        _require(ora, ["user_env", "password_env"], conn_name, config_path)
         _require_one_of(ora, ["service_name", "sid", "host"], conn_name, config_path)
     elif auth_mode == "wallet":
         _require(ora, ["wallet_location"], conn_name, config_path)
         _require_one_of(ora, ["service_name", "tns_alias", "host"], conn_name, config_path)
     elif auth_mode == "tns":
-        _require(ora, ["tns_alias", "user_env", "password_env"], conn_name, config_path)
+        _require(ora, ["tns_alias"], conn_name, config_path)
 
     return OracleConfig(
         host=ora.get("host", ""),
@@ -132,10 +134,10 @@ def load_config(config_path: Path) -> OracleConfig:
         service_name=ora.get("service_name", ""),
         sid=ora.get("sid", ""),
         auth_mode=auth_mode,
-        user_env=ora.get("user_env", "ORACLE_USER"),
-        password_env=ora.get("password_env", "ORACLE_PASSWORD"),
+        user=ora.get("user", ""),
+        password=ora.get("password", ""),
         wallet_location=ora.get("wallet_location", ""),
-        wallet_password_env=ora.get("wallet_password_env", ""),
+        wallet_password=ora.get("wallet_password", ""),
         tns_alias=ora.get("tns_alias", ""),
         tns_admin_env=ora.get("tns_admin_env", ""),
         schema_scope=ora.get("schema_scope") or [],
@@ -207,8 +209,8 @@ def build_connection(cfg: OracleConfig) -> "oracledb.Connection":
 
 
 def _connect_password(cfg: OracleConfig) -> "oracledb.Connection":
-    user = _resolve_env(cfg.user_env)
-    password = _resolve_env(cfg.password_env)
+    user = cfg.user or _prompt_credential("Oracle username")
+    password = cfg.password or _prompt_credential("Oracle password", secret=True)
 
     if cfg.service_name:
         return oracledb.connect(
@@ -224,22 +226,14 @@ def _connect_password(cfg: OracleConfig) -> "oracledb.Connection":
 
 
 def _connect_wallet(cfg: OracleConfig) -> "oracledb.Connection":
-    wallet_password = None
-    if cfg.wallet_password_env:
-        wallet_password = os.environ.get(cfg.wallet_password_env)
-        if wallet_password is None:
-            raise AuthError(
-                f"Environment variable '{cfg.wallet_password_env}' (wallet_password_env) is not set."
-            )
-
     # DSN is either tns_alias or service_name
     dsn = cfg.tns_alias or cfg.service_name or cfg.host
     kwargs: dict = {
         "dsn": dsn,
         "wallet_location": cfg.wallet_location,
     }
-    if wallet_password:
-        kwargs["wallet_password"] = wallet_password
+    if cfg.wallet_password:
+        kwargs["wallet_password"] = cfg.wallet_password
 
     return oracledb.connect(**kwargs)
 
@@ -250,16 +244,22 @@ def _connect_tns(cfg: OracleConfig) -> "oracledb.Connection":
         if tns_admin_dir:
             os.environ["TNS_ADMIN"] = tns_admin_dir
 
-    user = _resolve_env(cfg.user_env)
-    password = _resolve_env(cfg.password_env)
+    user = cfg.user or _prompt_credential("Oracle username")
+    password = cfg.password or _prompt_credential("Oracle password", secret=True)
     return oracledb.connect(user=user, password=password, dsn=cfg.tns_alias)
 
 
-def _resolve_env(var_name: str) -> str:
-    """Resolve an env var by name; raise AuthError if not set."""
-    value = os.environ.get(var_name)
+def _prompt_credential(label: str, secret: bool = False) -> str:
+    """Prompt for a credential interactively if stdin is a TTY; raise AuthError otherwise."""
+    field = label.lower().replace(" ", "_")
+    if not sys.stdin.isatty():
+        raise AuthError(
+            f"Oracle {label.lower()} is not set in active.yaml and no interactive terminal is available.\n"
+            f"Add '{field}: <value>' to the oracle: block in active.yaml (the file is gitignored)."
+        )
+    value = getpass.getpass(f"{label}: ") if secret else input(f"{label}: ")
     if not value:
-        raise AuthError(f"Environment variable '{var_name}' is not set.")
+        raise AuthError(f"Oracle {label.lower()} cannot be empty.")
     return value
 
 
@@ -276,7 +276,7 @@ def _raise_db_error(exc: "oracledb.DatabaseError", cfg: OracleConfig) -> None:
     if code in ("ORA-01017", "ORA-28000", "ORA-28001"):
         raise AuthError(
             f"Oracle authentication failed ({code}): {msg}\n"
-            "Check username/password environment variables and account status."
+            "Check username/password in active.yaml and account status."
         ) from exc
     if code == "ORA-12541":
         raise NetworkError(

@@ -40,8 +40,8 @@ def _minimal_oracle_yaml(auth_mode: str = "password", **oracle_overrides) -> dic
         "port": 1521,
         "service_name": "ORCL",
         "auth_mode": auth_mode,
-        "user_env": "ORACLE_USER",
-        "password_env": "ORACLE_PASSWORD",
+        "user": "testuser",
+        "password": "testpass",
     }
     base.update(oracle_overrides)
     return {
@@ -121,20 +121,21 @@ class TestLoadConfig:
         with pytest.raises(ConfigError, match="Unknown Oracle auth_mode"):
             load_config(p)
 
-    def test_password_mode_missing_user_env_raises_config_error(self, tmp_path):
+    def test_password_mode_missing_host_raises_config_error(self, tmp_path):
         from scripts.connectors.oracle import load_config
         data = _minimal_oracle_yaml(auth_mode="password")
-        del data["connections"][0]["oracle"]["user_env"]
+        del data["connections"][0]["oracle"]["host"]
+        del data["connections"][0]["oracle"]["service_name"]
         p = _write_yaml(tmp_path, data)
-        with pytest.raises(ConfigError, match="user_env"):
+        with pytest.raises(ConfigError, match="service_name"):
             load_config(p)
 
     def test_wallet_mode_missing_wallet_location_raises_config_error(self, tmp_path):
         from scripts.connectors.oracle import load_config
         data = _minimal_oracle_yaml(auth_mode="wallet")
         # wallet mode requires wallet_location; no default set
-        del data["connections"][0]["oracle"]["user_env"]
-        del data["connections"][0]["oracle"]["password_env"]
+        del data["connections"][0]["oracle"]["user"]
+        del data["connections"][0]["oracle"]["password"]
         p = _write_yaml(tmp_path, data)
         with pytest.raises(ConfigError, match="wallet_location"):
             load_config(p)
@@ -155,7 +156,8 @@ class TestLoadConfig:
         assert cfg.port == 1521
         assert cfg.service_name == "ORCL"
         assert cfg.auth_mode == "password"
-        assert cfg.user_env == "ORACLE_USER"
+        assert cfg.user == "testuser"
+        assert cfg.password == "testpass"
         assert cfg.fetch_size == 1000
         assert cfg.thick_mode is False
 
@@ -165,8 +167,8 @@ class TestLoadConfig:
             auth_mode="wallet",
             wallet_location="/path/to/wallet",
         )
-        del data["connections"][0]["oracle"]["user_env"]
-        del data["connections"][0]["oracle"]["password_env"]
+        del data["connections"][0]["oracle"]["user"]
+        del data["connections"][0]["oracle"]["password"]
         p = _write_yaml(tmp_path, data)
         cfg = load_config(p)
         assert cfg.auth_mode == "wallet"
@@ -184,6 +186,8 @@ class TestLoadConfig:
         assert cfg.auth_mode == "tns"
         assert cfg.tns_alias == "MY_DB"
         assert cfg.tns_admin_env == "TNS_ADMIN"
+        assert cfg.user == "testuser"
+        assert cfg.password == "testpass"
 
     def test_custom_fetch_size(self, tmp_path):
         from scripts.connectors.oracle import load_config
@@ -207,13 +211,11 @@ class TestLoadConfig:
 
 
 class TestBuildConnection:
-    def test_password_mode_calls_connect_with_credentials(self, mock_oracledb, monkeypatch):
+    def test_password_mode_calls_connect_with_credentials(self, mock_oracledb):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.setenv("ORACLE_USER", "testuser")
-        monkeypatch.setenv("ORACLE_PASSWORD", "testpass")
         cfg = OracleConfig(
             host="db.example.com", port=1521, service_name="ORCL",
-            auth_mode="password", user_env="ORACLE_USER", password_env="ORACLE_PASSWORD",
+            auth_mode="password", user="testuser", password="testpass",
         )
         mock_oracledb.connect.return_value = MagicMock()
         build_connection(cfg)
@@ -222,14 +224,15 @@ class TestBuildConnection:
             host="db.example.com", port=1521, service_name="ORCL",
         )
 
-    def test_password_mode_missing_user_env_raises_auth_error(self, mock_oracledb, monkeypatch):
+    def test_password_mode_missing_credentials_non_tty_raises_auth_error(self, mock_oracledb, monkeypatch):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.delenv("ORACLE_USER", raising=False)
+        import scripts.connectors.oracle as oracle_mod
+        monkeypatch.setattr(oracle_mod.sys.stdin, "isatty", lambda: False)
         cfg = OracleConfig(
             host="db.example.com", port=1521, service_name="ORCL",
-            auth_mode="password", user_env="ORACLE_USER", password_env="ORACLE_PASSWORD",
+            auth_mode="password", user="", password="",
         )
-        with pytest.raises(AuthError, match="ORACLE_USER"):
+        with pytest.raises(AuthError, match="active.yaml"):
             build_connection(cfg)
 
     def test_wallet_mode_calls_connect_without_user_password(self, mock_oracledb):
@@ -246,47 +249,44 @@ class TestBuildConnection:
         assert "password" not in call_kwargs
         assert call_kwargs["wallet_location"] == "/opt/wallet"
 
-    def test_wallet_mode_resolves_wallet_password_env(self, mock_oracledb, monkeypatch):
+    def test_wallet_mode_with_inline_wallet_password(self, mock_oracledb):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.setenv("MY_WALLET_PWD", "walletpass123")
         cfg = OracleConfig(
             service_name="mydb_high",
             auth_mode="wallet",
             wallet_location="/opt/wallet",
-            wallet_password_env="MY_WALLET_PWD",
+            wallet_password="walletpass123",
         )
         mock_oracledb.connect.return_value = MagicMock()
         build_connection(cfg)
         call_kwargs = mock_oracledb.connect.call_args.kwargs
         assert call_kwargs["wallet_password"] == "walletpass123"
 
-    def test_wallet_mode_missing_wallet_password_env_raises_auth_error(self, mock_oracledb, monkeypatch):
+    def test_wallet_mode_no_wallet_password_omits_kwarg(self, mock_oracledb):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.delenv("MY_WALLET_PWD", raising=False)
         cfg = OracleConfig(
             service_name="mydb_high",
             auth_mode="wallet",
             wallet_location="/opt/wallet",
-            wallet_password_env="MY_WALLET_PWD",
+            wallet_password="",
         )
-        with pytest.raises(AuthError, match="MY_WALLET_PWD"):
-            build_connection(cfg)
+        mock_oracledb.connect.return_value = MagicMock()
+        build_connection(cfg)
+        call_kwargs = mock_oracledb.connect.call_args.kwargs
+        assert "wallet_password" not in call_kwargs
 
     def test_tns_mode_sets_tns_admin_env(self, mock_oracledb, monkeypatch):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.setenv("ORACLE_USER", "tnsuser")
-        monkeypatch.setenv("ORACLE_PASSWORD", "tnspass")
         monkeypatch.setenv("TNS_ADMIN", "/etc/oracle/network/admin")
         cfg = OracleConfig(
             auth_mode="tns",
             tns_alias="MY_DB",
             tns_admin_env="TNS_ADMIN",
-            user_env="ORACLE_USER",
-            password_env="ORACLE_PASSWORD",
+            user="tnsuser",
+            password="tnspass",
         )
         mock_oracledb.connect.return_value = MagicMock()
         build_connection(cfg)
-        # TNS_ADMIN should be set in environment
         assert os.environ.get("TNS_ADMIN") == "/etc/oracle/network/admin"
         mock_oracledb.connect.assert_called_once_with(
             user="tnsuser", password="tnspass", dsn="MY_DB"
@@ -308,32 +308,28 @@ class TestBuildConnection:
         with pytest.raises(AuthError, match="wallet certificate"):
             build_connection(cfg)
 
-    def test_invalid_credentials_raises_auth_error(self, mock_oracledb, monkeypatch):
+    def test_invalid_credentials_raises_auth_error(self, mock_oracledb):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.setenv("ORACLE_USER", "baduser")
-        monkeypatch.setenv("ORACLE_PASSWORD", "badpass")
         mock_oracledb.DatabaseError = type("DatabaseError", (Exception,), {})
         mock_oracledb.connect.side_effect = mock_oracledb.DatabaseError(
             "ORA-01017: invalid username/password; logon denied"
         )
         cfg = OracleConfig(
             host="db.example.com", port=1521, service_name="ORCL",
-            auth_mode="password", user_env="ORACLE_USER", password_env="ORACLE_PASSWORD",
+            auth_mode="password", user="baduser", password="badpass",
         )
         with pytest.raises(AuthError, match="authentication failed"):
             build_connection(cfg)
 
-    def test_no_listener_raises_network_error(self, mock_oracledb, monkeypatch):
+    def test_no_listener_raises_network_error(self, mock_oracledb):
         from scripts.connectors.oracle import build_connection, OracleConfig
-        monkeypatch.setenv("ORACLE_USER", "user")
-        monkeypatch.setenv("ORACLE_PASSWORD", "pass")
         mock_oracledb.DatabaseError = type("DatabaseError", (Exception,), {})
         mock_oracledb.connect.side_effect = mock_oracledb.DatabaseError(
             "ORA-12541: TNS:no listener"
         )
         cfg = OracleConfig(
             host="db.example.com", port=1521, service_name="ORCL",
-            auth_mode="password", user_env="ORACLE_USER", password_env="ORACLE_PASSWORD",
+            auth_mode="password", user="user", password="pass",
         )
         with pytest.raises(NetworkError, match="listener"):
             build_connection(cfg)

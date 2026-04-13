@@ -1,9 +1,6 @@
 # DB Analyst Framework — Connection Profiles
 # Copy this file to .claude/db-connections/active.yaml and fill in your values.
-# active.yaml is gitignored — never commit credentials.
-#
-# Reference environment variables for all secrets; never paste passwords here.
-# Set env vars in your shell profile or a .env file (also gitignored).
+# active.yaml is gitignored — credentials stored here stay local to your machine.
 
 # ── Active connection ────────────────────────────────────────────────────────
 # Set this to the `name` of whichever connection below you want Claude to use.
@@ -53,18 +50,22 @@ connections:
       auth_mode: password          # Options: password | wallet | tns
 
       # ── password mode (standard on-prem) ──────────────────────────────────
-      user_env: ORACLE_USER        # env var holding the username
-      password_env: ORACLE_PASSWORD  # env var holding the password
+      # Store credentials directly — active.yaml is gitignored on analyst machines.
+      # If user/password are omitted, the connector will prompt interactively.
+      user: my_read_only_user
+      password: my_password
 
       # ── wallet mode (Oracle Cloud Autonomous DB / mTLS) ───────────────────
       # auth_mode: wallet
       # wallet_location: /path/to/wallet   # directory containing cwallet.sso / ewallet.p12
-      # wallet_password_env: ORACLE_WALLET_PASSWORD   # omit if wallet has no password
+      # wallet_password: my_wallet_pass    # omit if wallet has no password
 
       # ── tns mode (centralised tnsnames.ora on-prem) ───────────────────────
       # auth_mode: tns
       # tns_alias: MY_DB_ALIAS             # alias from tnsnames.ora
       # tns_admin_env: TNS_ADMIN           # env var pointing to tnsnames.ora directory
+      # user: my_read_only_user
+      # password: my_password
 
       schema_scope:                # Limit introspection to these schemas (empty = all accessible)
         - SALES
