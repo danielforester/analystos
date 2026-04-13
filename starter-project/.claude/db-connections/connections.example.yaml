@@ -65,27 +65,37 @@ connections:
 
   # ---------------------------------------------------------------------------
   # AWS Athena — serverless SQL over S3
+  # Run queries via: python scripts/athena_connect.py --query "..." --format csv
   # ---------------------------------------------------------------------------
   - name: awsathena
     type: athena
     display_name: "AWS Athena"
     read_only: true
-    
-    transport: mcp                    # Athena has no official MCP server — but can roll your own!
-    mcp_server: athena                # name of the MCP server in Claude
+    transport: direct               # Use the athena_connect.py wrapper script
 
-    # transport: direct           # Athena has no official MCP server — use direct.
-    # mcp_server:                 # (leave blank for Athena)
+    athena:
+      region: us-east-1
+      database: analytics           # Default Glue/Athena database
+      s3_output_location: s3://my-bucket/athena-results/
+      workgroup: primary            # Athena workgroup (controls per-query data limits)
+      timeout_seconds: 300          # Max seconds to wait for query completion
 
-    #athena:
-    #  region: us-east-1
-    #  database: analytics          # Default Glue/Athena database
-    #  s3_output_location: s3://my-bucket/athena-results/
-    #  workgroup: primary           # Athena workgroup (controls per-query data limits)
-    #  aws_profile_env: AWS_PROFILE  # Name of the env var holding the AWS profile name
-      # Alternatively, use key-based auth:
-      # aws_access_key_id_env: AWS_ACCESS_KEY_ID
-      # aws_secret_access_key_env: AWS_SECRET_ACCESS_KEY
+      aws:
+        # ── Auth mode ────────────────────────────────────────────────────────
+        # profile  — named profile in ~/.aws/config (supports SSO/IAM Identity Center)
+        #            Run once to authenticate: aws sso login --profile <profile_name>
+        # keys     — static key/secret via environment variables (service accounts)
+        # env      — boto3 default chain: env vars → ~/.aws/credentials → instance role
+        auth: profile
+        profile_name: my-sso-profile
+
+        # For keys mode, uncomment and set the env var names holding your credentials:
+        # auth: keys
+        # access_key_id_env: AWS_ACCESS_KEY_ID
+        # secret_access_key_env: AWS_SECRET_ACCESS_KEY
+
+        # For env/instance-role mode (EC2, Lambda, ECS, GitHub Actions OIDC, etc.):
+        # auth: env
 
     cost_thresholds:
       warn_bytes: 1073741824       # Warn when EXPLAIN estimates > 1 GB scanned (1 * 1024^3)

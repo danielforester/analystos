@@ -85,20 +85,29 @@ If within threshold:
 
 ## AWS Athena — Cost Estimation
 
-### Step 1: Run EXPLAIN
+### Step 1: Run EXPLAIN via the wrapper script
 
-```sql
-EXPLAIN
-{paste the query here};
+```bash
+python scripts/athena_connect.py --query "{paste the query here}" --explain
 ```
 
-Athena's EXPLAIN output is text-based. Look for:
-- `Output rows` — estimated rows returned
-- Fragment data-read estimates — Athena reports estimated data read per fragment
+The script runs `EXPLAIN`, polls for completion, and prints structured output:
+
+```
+EXPLAIN output:
+{raw Presto/Trino plan text}
+---
+estimated_bytes: 2684354560
+estimated_gb: 2.50
+```
+
+Read the `estimated_bytes:` and `estimated_gb:` lines from stdout.
+If the script prints `estimated_bytes: unknown`, the plan text could not be parsed —
+flag this to the analyst and ask if they want to proceed without an estimate.
 
 ### Step 2: Parse the output
 
-Key patterns to look for in EXPLAIN output text:
+From the raw plan text, also note:
 - `rows = X` — row count estimates at each node
 - `Output[...] => [...]` — final output description
 - Partition pruning notes — if the query hits ALL partitions, flag it

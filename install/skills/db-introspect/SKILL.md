@@ -215,6 +215,14 @@ Note: `num_rows` in `all_tables` reflects the last ANALYZE run and may be stale.
 
 ### AWS Athena (Presto/Trino)
 
+**If `transport: direct`** — execute each query via the wrapper script:
+
+```bash
+python scripts/athena_connect.py --query "{sql}" --format csv
+```
+
+Metadata queries:
+
 ```sql
 -- All tables in the active database
 SELECT table_name, table_type

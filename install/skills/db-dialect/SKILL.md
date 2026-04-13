@@ -189,13 +189,32 @@ SHOW PARTITIONS {database}.{table};
 SELECT * FROM {database}.{table} LIMIT 10;
 ```
 
-### Cost Signal — EXPLAIN
+### Execution (`transport: direct`)
 
-```sql
-EXPLAIN {your_query};
+Run queries via the Athena wrapper script:
+
+```bash
+python scripts/athena_connect.py --query "{sql}" --format csv --limit 1000
 ```
 
-Parse the output for `Est. Output rows` and estimated data read. The Athena query engine reports estimated bytes in the EXPLAIN output text — look for patterns like `rows = X` and data size estimates.
+For JSON output or unlimited rows:
+```bash
+python scripts/athena_connect.py --query "{sql}" --format json --limit 0
+```
+
+The script reads auth config from `.claude/db-connections/active.yaml` automatically.
+Exit code 0 = success; non-zero = error (check stderr for details).
+
+### Cost Signal — EXPLAIN
+
+Use the wrapper's `--explain` flag to run EXPLAIN and get a structured byte estimate:
+
+```bash
+python scripts/athena_connect.py --query "{sql}" --explain
+```
+
+Parse the `estimated_bytes:` line from stdout. The wrapper handles EXPLAIN execution,
+polling, and byte-unit parsing automatically.
 
 **Threshold check:** If estimated bytes scanned > `warn_bytes` from connections.yaml, surface a warning with the estimate formatted as human-readable (e.g., "~2.3 GB") before running.
 

@@ -71,6 +71,10 @@ mcp__{mcp_server}__read_query  {"query": "SELECT {columns} FROM {table} LIMIT {n
 For value summary stats (Step 4), also use `read_query` with the appropriate aggregate SELECT.
 
 **If `transport: direct`** — execute via Bash using the dialect-appropriate syntax from Step 1.
+For Athena (`type: athena`), always use the wrapper script:
+```bash
+python scripts/athena_connect.py --query "SELECT {columns} FROM {database}.{table} LIMIT {n}" --format csv
+```
 
 In both cases, if the query fails:
 - Permission error: Report "⚠️ Cannot sample {table} — permission denied"
