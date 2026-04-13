@@ -8,12 +8,28 @@ and configuring it for your first project.
 ## Prerequisites
 
 - [Claude Code](https://claude.ai/code) installed and authenticated
-- Python 3.9+ on your PATH (for hooks)
-- `pip install pyyaml` (required by the cost-gate hook for Oracle/Athena connections)
-- For Oracle: Oracle client libraries + `cx_Oracle` or `python-oracledb`
-- For Athena: AWS CLI configured, `boto3` installed
-- For SQLite demo: no extra prerequisites — `starter-project` ships with a pre-built demo database
-- For MCP-based connections:  relevant MCP installed (or built! :-) ...)
+- Python 3.9+ on your PATH
+
+### Python packages
+
+**Core — required for hooks and config parsing (install this first):**
+```bash
+pip install pyyaml
+```
+
+**Database connectors — install only what you connect to:**
+```bash
+pip install oracledb                    # Oracle  (thin mode — no Instant Client required)
+pip install boto3                       # AWS Athena
+pip install snowflake-connector-python  # Snowflake
+```
+SQLite requires no extra packages — Python's built-in `sqlite3` module is used.
+For MCP-based connections, install the relevant MCP server instead of the Python driver (see Part 5).
+
+**Development / running the test suite (optional):**
+```bash
+pip install pytest
+```
 
 ---
 
