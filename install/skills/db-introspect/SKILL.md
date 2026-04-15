@@ -148,7 +148,7 @@ SQLite has no native table comments. Column type strings are loose (affinity-bas
 **If `transport: direct`** — execute each query via the wrapper script:
 
 ```bash
-python scripts/oracle_connect.py --query "{sql}" --format csv
+python .claude/scripts/oracle_connect.py --query "{sql}" --format csv
 ```
 
 Metadata queries:
@@ -226,7 +226,7 @@ Note: `num_rows` in `all_tables` reflects the last ANALYZE run and may be stale.
 **If `transport: direct`** — execute each query via the wrapper script:
 
 ```bash
-python scripts/athena_connect.py --query "{sql}" --format csv
+python .claude/scripts/athena_connect.py --query "{sql}" --format csv
 ```
 
 Metadata queries:
@@ -258,7 +258,7 @@ Athena has no column comments or FK constraints in the catalog. Note this in out
 **If `transport: direct`** — execute each query via the wrapper script:
 
 ```bash
-python scripts/snowflake_connect.py --query "{sql}" --format csv
+python .claude/scripts/snowflake_connect.py --query "{sql}" --format csv
 ```
 
 Metadata queries:

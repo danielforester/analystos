@@ -128,12 +128,12 @@ SELECT * FROM {SCHEMA}.{TABLE} WHERE ROWNUM <= 10;
 Run queries via the Oracle wrapper script:
 
 ```bash
-python scripts/oracle_connect.py --query "{sql}" --format csv --limit 1000
+python .claude/scripts/oracle_connect.py --query "{sql}" --format csv --limit 1000
 ```
 
 For JSON output or unlimited rows:
 ```bash
-python scripts/oracle_connect.py --query "{sql}" --format json --limit 0
+python .claude/scripts/oracle_connect.py --query "{sql}" --format json --limit 0
 ```
 
 The script reads auth config from `.claude/db-connections/active.yaml` automatically.
@@ -144,7 +144,7 @@ Exit code 0 = success; non-zero = error (check stderr for details).
 Use the wrapper's `--explain` flag to run EXPLAIN PLAN and get a structured estimate:
 
 ```bash
-python scripts/oracle_connect.py --query "{sql}" --explain
+python .claude/scripts/oracle_connect.py --query "{sql}" --explain
 ```
 
 The script runs `EXPLAIN PLAN FOR`, reads `DBMS_XPLAN.DISPLAY()` and `plan_table`,
@@ -215,12 +215,12 @@ SELECT * FROM {database}.{table} LIMIT 10;
 Run queries via the Athena wrapper script:
 
 ```bash
-python scripts/athena_connect.py --query "{sql}" --format csv --limit 1000
+python .claude/scripts/athena_connect.py --query "{sql}" --format csv --limit 1000
 ```
 
 For JSON output or unlimited rows:
 ```bash
-python scripts/athena_connect.py --query "{sql}" --format json --limit 0
+python .claude/scripts/athena_connect.py --query "{sql}" --format json --limit 0
 ```
 
 The script reads auth config from `.claude/db-connections/active.yaml` automatically.
@@ -231,7 +231,7 @@ Exit code 0 = success; non-zero = error (check stderr for details).
 Use the wrapper's `--explain` flag to run EXPLAIN and get a structured byte estimate:
 
 ```bash
-python scripts/athena_connect.py --query "{sql}" --explain
+python .claude/scripts/athena_connect.py --query "{sql}" --explain
 ```
 
 Parse the `estimated_bytes:` line from stdout. The wrapper handles EXPLAIN execution,
@@ -308,17 +308,17 @@ FROM {database}.{schema}.{table};
 Run queries via the Snowflake wrapper script:
 
 ```bash
-python scripts/snowflake_connect.py --query "{sql}" --format csv --limit 1000
+python .claude/scripts/snowflake_connect.py --query "{sql}" --format csv --limit 1000
 ```
 
 For JSON output or unlimited rows:
 ```bash
-python scripts/snowflake_connect.py --query "{sql}" --format json --limit 0
+python .claude/scripts/snowflake_connect.py --query "{sql}" --format json --limit 0
 ```
 
 Override warehouse, schema, or role for a single call:
 ```bash
-python scripts/snowflake_connect.py --query "{sql}" --warehouse LARGE_WH --schema SALES --role ANALYST
+python .claude/scripts/snowflake_connect.py --query "{sql}" --warehouse LARGE_WH --schema SALES --role ANALYST
 ```
 
 The script reads auth config from `.claude/db-connections/active.yaml` automatically.
@@ -329,7 +329,7 @@ Exit code 0 = success; non-zero = error (check stderr for details).
 Use the wrapper's `--explain` flag to run EXPLAIN USING TABULAR and get structured byte/partition estimates:
 
 ```bash
-python scripts/snowflake_connect.py --query "{sql}" --explain
+python .claude/scripts/snowflake_connect.py --query "{sql}" --explain
 ```
 
 The script runs `EXPLAIN USING TABULAR`, aggregates `bytesAssigned` (sum across all plan rows)

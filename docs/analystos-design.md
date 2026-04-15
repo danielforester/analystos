@@ -114,8 +114,8 @@ Skills are reusable prompt libraries invoked internally by slash commands or hoo
 All knowledge lives in `db-knowledge/` as plain markdown files. This directory is the durable, shareable, version-controllable product of the framework.
 
 ```
+CLAUDE.md                            # Project-level Claude instructions (auto-loads KB context)
 .claude/
-├── CLAUDE.md                        # Project-level Claude instructions (auto-loads KB context)
 ├── db-connections/
 │   ├── connections.example.yaml     # Template — never store real credentials here
 │   └── active.yaml                  # Symlink or pointer to active connection profile
@@ -260,7 +260,7 @@ Obsidian uses `[[wikilink]]` syntax for internal navigation. Standard markdown u
 
 #### The Conversion Approach
 
-A standalone Python script (`scripts/kb-to-obsidian.py`) handles the translation for analysts who want Obsidian. It is intentionally decoupled from Claude Code and requires no database access.
+A standalone Python script (`.claude/scripts/kb-to-obsidian.py`) handles the translation for analysts who want Obsidian. It is intentionally decoupled from Claude Code and requires no database access.
 
 **What the script does:**
 
@@ -272,7 +272,7 @@ A standalone Python script (`scripts/kb-to-obsidian.py`) handles the translation
 **Script interface:**
 
 ```bash
-python scripts/kb-to-obsidian.py \
+python .claude/scripts/kb-to-obsidian.py \
   --source  db-knowledge/ \
   --output  .claude/_obsidian-vault/ \
   --frontmatter \        # inject YAML frontmatter
@@ -344,7 +344,7 @@ The graph view reflects *link presence*, not *relationship semantics*. It shows 
 
 | Path | Purpose |
 |---|---|
-| `.claude/CLAUDE.md` | Claude Code project instructions; loads DB context at session start |
+| `CLAUDE.md` | Claude Code project instructions; loads DB context at session start |
 | `.claude/db-connections/active.yaml` | Active connection profile (gitignored) |
 | `.claude/db-connections/connections.example.yaml` | Template for connection profiles |
 | `db-knowledge/README.md` | Index of all documented connections/schemas |

@@ -40,11 +40,11 @@ available in every project.
 
 **OPTIONAL**:  An install/upgrade script is included:
 ```bash
-python scripts/install.py --dry-run
+python starter-project/.claude/scripts/install.py --dry-run
 ```
 will tell you what updates would be made (but not make them).
 ```bash
-python scripts/install.py
+python starter-project/.claude/scripts/install.py
 ```
 will do it for real!
 
@@ -223,7 +223,7 @@ Recommended for teams that want history, reviews, and no merge conflicts:
 
 **What to commit:**
 - `db-knowledge/**` — all KB files
-- `.claude/CLAUDE.md` — project instructions
+- `CLAUDE.md` — project instructions
 - `.claude/db-connections/connections.example.yaml` — template (no real credentials)
 
 **Never commit:**

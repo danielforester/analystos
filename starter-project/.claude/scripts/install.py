@@ -6,13 +6,13 @@ Copies skills and hooks from install/ into ~/.claude/ and merges the
 hooks block into ~/.claude/settings.json. Safe to re-run for upgrades.
 
 Usage:
-    python scripts/install.py                          # Install or upgrade global components
-    python scripts/install.py --project-dir PATH       # Also copy connector scripts into a project
-    python scripts/install.py --dry-run                # Preview changes without writing
-    python scripts/install.py --project-dir PATH --dry-run
+    python starter-project/.claude/scripts/install.py                          # Install or upgrade global components
+    python starter-project/.claude/scripts/install.py --project-dir PATH       # Also copy connector scripts into a project
+    python starter-project/.claude/scripts/install.py --dry-run                # Preview changes without writing
+    python starter-project/.claude/scripts/install.py --project-dir PATH --dry-run
 
 Connector scripts (athena_connect.py, oracle_connect.py, snowflake_connect.py)
-are project-local — skills call them via relative paths (e.g. python scripts/oracle_connect.py).
+are project-local — skills call them via relative paths (e.g. python .claude/scripts/oracle_connect.py).
 Without --project-dir, they are NOT installed and existing project copies will not be updated.
 """
 
@@ -27,7 +27,7 @@ from pathlib import Path
 # Configuration
 # ---------------------------------------------------------------------------
 
-REPO_ROOT = Path(__file__).parent.parent
+REPO_ROOT = Path(__file__).parent.parent.parent.parent
 INSTALL_DIR = REPO_ROOT / "install"
 CLAUDE_DIR = Path.home() / ".claude"
 
@@ -163,9 +163,9 @@ def merge_settings(dry: bool) -> None:
 # ---------------------------------------------------------------------------
 
 def install_connectors(project_dir: Path, dry: bool) -> None:
-    """Copy connector scripts and the connectors package into a project's scripts/ directory."""
-    scripts_src = REPO_ROOT / "scripts"
-    scripts_dst = project_dir / "scripts"
+    """Copy connector scripts and the connectors package into a project's .claude/scripts/ directory."""
+    scripts_src = Path(__file__).parent
+    scripts_dst = project_dir / ".claude" / "scripts"
 
     if not dry:
         scripts_dst.mkdir(parents=True, exist_ok=True)
@@ -175,7 +175,7 @@ def install_connectors(project_dir: Path, dry: bool) -> None:
     connectors_dst = scripts_dst / "connectors"
     if connectors_src.is_dir():
         action = "upgrade" if connectors_dst.exists() else "install"
-        _echo(action, f"scripts/connectors/  -> {connectors_dst}", dry)
+        _echo(action, f".claude/scripts/connectors/  -> {connectors_dst}", dry)
         if not dry:
             if connectors_dst.exists():
                 shutil.rmtree(connectors_dst)
@@ -190,7 +190,7 @@ def install_connectors(project_dir: Path, dry: bool) -> None:
     for wrapper in wrappers:
         target = scripts_dst / wrapper.name
         action = "upgrade" if target.exists() else "install"
-        _echo(action, f"scripts/{wrapper.name}", dry)
+        _echo(action, f".claude/scripts/{wrapper.name}", dry)
         if not dry:
             shutil.copy2(wrapper, target)
 
@@ -246,7 +246,7 @@ def main() -> None:
             "(athena_connect.py, oracle_connect.py, snowflake_connect.py) "
             "were NOT installed.\n"
             "      Existing projects will not receive connector updates until you run:\n"
-            f"      python scripts/install.py --project-dir /path/to/your/project"
+            f"      python starter-project/.claude/scripts/install.py --project-dir /path/to/your/project"
         )
 
     print("\nDone." if not dry else "\nDry run complete — rerun without --dry-run to apply.")

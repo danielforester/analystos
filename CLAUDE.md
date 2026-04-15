@@ -93,8 +93,8 @@ install/              # Copy to ~/.claude/ — global skills and hooks
   settings.json       # Hook registration template (merge into ~/.claude/settings.json)
 
 starter-project/       # Ready-to-use project — copy this folder to start immediately
+  CLAUDE.md                          # Project-level Claude instructions
   .claude/
-    CLAUDE.md                        # Project-level Claude instructions
     db-connections/
       connections.example.yaml       # All connection profiles template
       active.yaml                    # Pre-configured for demo DB (committed here only)
@@ -104,14 +104,18 @@ starter-project/       # Ready-to-use project — copy this folder to start imme
     example_schema/
       _schema-overview-template.md   # Copy → db-knowledge/{connection-name}/{schema}/_schema-overview.md
       _table-template.md             # Copy → db-knowledge/{connection-name}/{schema}/{table}.md
+    scripts/
+      install.py                     # Install/upgrade script (run from repo root)
+      kb-to-obsidian.py              # Convert KB to an Obsidian-compatible vault
+      athena_connect.py              # Athena CLI wrapper
+      oracle_connect.py              # Oracle CLI wrapper
+      snowflake_connect.py           # Snowflake CLI wrapper
+      connectors/                    # Shared connector package
   db-knowledge/                      # Blank KB scaffold (README, _gotchas, _open-questions)
   .gitignore                         # Protects credentials in real projects
 
 docs/
   setup-guide.md      # Full install walkthrough (global install + using starter-project)
-
-scripts/
-  kb-to-obsidian.py   # Convert KB to an Obsidian-compatible vault
 ```
 
 ## Implementation Status

@@ -27,7 +27,7 @@ accidentally triggering expensive scans or hitting governor limits.
 ### Step 1: Run EXPLAIN PLAN via the wrapper script
 
 ```bash
-python scripts/oracle_connect.py --query "{paste the query here}" --explain
+python .claude/scripts/oracle_connect.py --query "{paste the query here}" --explain
 ```
 
 The script runs `EXPLAIN PLAN FOR` (does not execute the query), reads the plan via
@@ -50,7 +50,7 @@ could not be read — ask the analyst if they want to proceed without an estimat
 The wrapper reads `plan_table` automatically. For deeper plan inspection, use:
 
 ```bash
-python scripts/oracle_connect.py --query "SELECT operation, options, object_name, cardinality, cost FROM plan_table WHERE plan_id = (SELECT MAX(plan_id) FROM plan_table) ORDER BY id" --format csv
+python .claude/scripts/oracle_connect.py --query "SELECT operation, options, object_name, cardinality, cost FROM plan_table WHERE plan_id = (SELECT MAX(plan_id) FROM plan_table) ORDER BY id" --format csv
 ```
 
 ### Step 3: Interpret
@@ -89,7 +89,7 @@ If within threshold:
 ### Step 1: Run EXPLAIN via the wrapper script
 
 ```bash
-python scripts/athena_connect.py --query "{paste the query here}" --explain
+python .claude/scripts/athena_connect.py --query "{paste the query here}" --explain
 ```
 
 The script runs `EXPLAIN`, polls for completion, and prints structured output:
@@ -157,7 +157,7 @@ before execution.
 ### Step 1: Run EXPLAIN USING TABULAR via the wrapper script
 
 ```bash
-python scripts/snowflake_connect.py --query "{paste the query here}" --explain
+python .claude/scripts/snowflake_connect.py --query "{paste the query here}" --explain
 ```
 
 The script runs `EXPLAIN USING TABULAR` (does not execute the query), aggregates

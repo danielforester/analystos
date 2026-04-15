@@ -34,6 +34,7 @@ __pycache__/
 venv/
 
 # ── What IS committed ────────────────────────────────────────────────────────
+# CLAUDE.md                                        ← project instructions
 # .claude/db-connections/connections.example.yaml  ← template, safe to commit
+# .claude/scripts/**                               ← connector scripts
 # db-knowledge/**                                  ← the whole knowledge base
-# .claude/CLAUDE.md                               ← project instructions

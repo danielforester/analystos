@@ -76,15 +76,15 @@ For value summary stats (Step 4), also use `read_query` with the appropriate agg
 **If `transport: direct`** — execute via Bash using the dialect-appropriate syntax from Step 1.
 For Athena (`type: athena`), always use the wrapper script:
 ```bash
-python scripts/athena_connect.py --query "SELECT {columns} FROM {database}.{table} LIMIT {n}" --format csv
+python .claude/scripts/athena_connect.py --query "SELECT {columns} FROM {database}.{table} LIMIT {n}" --format csv
 ```
 For Oracle (`type: oracle`), always use the wrapper script:
 ```bash
-python scripts/oracle_connect.py --query "SELECT {columns} FROM {SCHEMA}.{table} FETCH FIRST {n} ROWS ONLY" --format csv
+python .claude/scripts/oracle_connect.py --query "SELECT {columns} FROM {SCHEMA}.{table} FETCH FIRST {n} ROWS ONLY" --format csv
 ```
 For Snowflake (`type: snowflake`), always use the wrapper script:
 ```bash
-python scripts/snowflake_connect.py --query "SELECT {columns} FROM {schema}.{table} LIMIT {n}" --format csv
+python .claude/scripts/snowflake_connect.py --query "SELECT {columns} FROM {schema}.{table} LIMIT {n}" --format csv
 ```
 
 In both cases, if the query fails:
