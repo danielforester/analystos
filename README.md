@@ -1,3 +1,5 @@
+<img src="docs/analyst-os-infographic-portrait.svg">
+
 # AnalystOS
 
 **A Claude Code extension that turns Claude into a senior data engineer assistant for SQL analysts.**
