@@ -58,11 +58,15 @@ that materially changes the query structure.
 
 ## Step 2: Check the Knowledge Base
 
-Before writing any SQL, check `db-knowledge/` for context:
+Before writing any SQL, check `db-knowledge/` for context.
 
-1. Read `_gotchas.md` — load any cross-schema warnings
-2. If the question involves a specific schema, read `{schema}/_schema-overview.md` if it exists
-3. For each table likely involved, check `{schema}/{table}.md` if it exists
+First, read `.claude/db-connections/active.yaml` to determine `name` (the active connection name)
+and the active schema from `schema_scope`. Then:
+
+1. Read `db-knowledge/_gotchas.md` — cross-connection, project-wide warnings
+2. Read `db-knowledge/{connection-name}/_gotchas.md` — cross-schema warnings for this connection
+3. If the question involves a specific schema, read `db-knowledge/{connection-name}/{schema}/_schema-overview.md` if it exists
+4. For each table likely involved, check `db-knowledge/{connection-name}/{schema}/{table}.md` if it exists
 
 If gotchas are found that are relevant to the query (e.g., a soft-delete pattern on a table
 being queried), note them in the drafted query as comments:
@@ -218,7 +222,7 @@ After interpretation, if the result is significant (row count > 0, non-trivial q
 analyst seems satisfied with the result), offer:
 
 > "Save this query to the knowledge base? I can store it as
-> `db-knowledge/{schema}/_queries/{suggested_name}.sql` with a description."
+> `db-knowledge/{connection-name}/{schema}/_queries/{suggested_name}.sql` with a description."
 
 If the analyst agrees, prompt for a name if not already clear, then write the file:
 
@@ -226,6 +230,7 @@ If the analyst agrees, prompt for a name if not already clear, then write the fi
 -- Name: {query_name}
 -- Purpose: {what question this answers}
 -- Returns: {grain}
+-- Connection: {connection-name}
 -- Schema: {schema}
 -- Dialect: {dialect}
 -- Last run: {today's date}
@@ -234,7 +239,7 @@ If the analyst agrees, prompt for a name if not already clear, then write the fi
 {the SQL}
 ```
 
-Confirm the save: "Saved to `db-knowledge/{schema}/_queries/{name}.sql`."
+Confirm the save: "Saved to `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql`."
 
 ---
 

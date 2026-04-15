@@ -43,8 +43,12 @@ If the directory does not exist, stop and tell the user:
 
 Walk the KB directory and collect:
 
-**Schema-level entries** — any subdirectory that is not prefixed with `_` and is not
-a top-level file. Each subdirectory is treated as a schema.
+**Connection-level entries** — any subdirectory that is not prefixed with `_` and is not
+a top-level file. Each such subdirectory represents a connection name.
+
+**For each connection directory, collect:**
+- `_gotchas.md` — cross-schema gotchas for this connection (optional)
+- Any subdirectory inside the connection dir that is not prefixed with `_` — each is a schema
 
 **For each schema directory, collect:**
 - `_schema-overview.md` — schema-level overview (optional)
@@ -52,8 +56,8 @@ a top-level file. Each subdirectory is treated as a schema.
 - The `_queries/` subdirectory — note the count of `.sql` files if present
 
 **Top-level files to handle specially:**
-- `README.md` — this is the file we are regenerating, not a schema
-- `_gotchas.md` — cross-schema gotchas, list in the index header section
+- `README.md` — this is the file we are regenerating, not a connection
+- `_gotchas.md` — cross-connection, project-wide gotchas; list in the index header section
 - `_open-questions.md` — list in the index header section
 - `_external-docs/` — note if present but do not recurse
 
@@ -69,7 +73,7 @@ For each `{table_name}.md` file found, extract:
 4. **Purpose (first sentence)** — find the `## Purpose` section and extract the first non-blank sentence (truncate at 100 characters with `…` if longer)
 
 If a file cannot be parsed (empty, malformed), note it with:
-> "⚠️ Could not parse `{schema}/{table_name}.md` — skipping from index"
+> "⚠️ Could not parse `{connection-name}/{schema}/{table_name}.md` — skipping from index"
 
 And include the table in the index with `(parse error)` in the Purpose column.
 
@@ -82,38 +86,49 @@ Produce the updated README.md content with this structure:
 ```markdown
 # DB Knowledge Base
 
-This directory contains the team's data dictionary for `{schema_scope}`.
+This directory contains the team's data dictionary for this project's database connections.
 
 **Contents:**
+- {N} connection(s) documented
 - {N} schema(s) documented
 - {N} table(s) documented
 - {N} canonical queries saved
 - Last indexed: {today's date YYYY-MM-DD}
 
 Cross-cutting files:
-- [`_gotchas.md`](_gotchas.md) — known issues that apply across schemas
+- [`_gotchas.md`](_gotchas.md) — known issues that apply across all connections
 - [`_open-questions.md`](_open-questions.md) — unresolved questions
 
 ---
 
 ## Index
 
-{For each schema, a subsection:}
+{For each connection, a top-level subsection:}
 
-### {SCHEMA_NAME}
+## {connection-name}
 
-{If _schema-overview.md exists: "📄 [Schema overview]({schema}/_schema-overview.md)"}
+{If connection dir has a _gotchas.md: "📄 [Connection-level gotchas]({connection-name}/_gotchas.md)"}
+
+{For each schema within the connection:}
+
+### {connection-name} / {SCHEMA_NAME}
+
+{If _schema-overview.md exists: "📄 [Schema overview]({connection-name}/{schema}/_schema-overview.md)"}
 {If no overview: "*(No schema overview — run `/db-orient {schema}` to create one.)*"}
 
 | Table | Purpose | Status | Last Documented | Queries |
 |-------|---------|--------|-----------------|---------|
-| [`{table_name}`]({schema}/{table_name}.md) | {first sentence of Purpose} | {draft\|reviewed\|trusted} | {YYYY-MM-DD or "—"} | {N queries or "—"} |
+| [`{table_name}`]({connection-name}/{schema}/{table_name}.md) | {first sentence of Purpose} | {draft\|reviewed\|trusted} | {YYYY-MM-DD or "—"} | {N queries or "—"} |
 
 {Repeat for each table in the schema, sorted alphabetically}
 
 ---
 
-{Repeat for each additional schema}
+{Repeat for each additional schema within the connection}
+
+---
+
+{Repeat for each additional connection}
 
 ---
 
@@ -122,8 +137,9 @@ Cross-cutting files:
 
 **Rules for the index:**
 - Tables sorted alphabetically within each schema
-- Schemas sorted alphabetically
-- If `_queries/` exists with `.sql` files, show the count as a number link: `[3]({schema}/_queries/)`
+- Schemas sorted alphabetically within each connection
+- Connections sorted alphabetically
+- If `_queries/` exists with `.sql` files, show the count as a number link: `[3]({connection-name}/{schema}/_queries/)`
 - If no queries, show `—`
 - Status column values: `draft`, `reviewed`, `trusted` (match whatever is in the file)
 - Missing metadata (no date, no status): show `—`
@@ -145,11 +161,11 @@ first H2 that contains a table).
 Write the new content (UTF-8 encoding).
 
 Confirm:
-> "Updated `db-knowledge/README.md`. Indexed {N} schema(s), {N} table(s)."
+> "Updated `db-knowledge/README.md`. Indexed {N} connection(s), {N} schema(s), {N} table(s)."
 
 If any parse errors occurred, list them:
 > "⚠️ Could not parse the following files (included in index with placeholder text):
-> - `{schema}/{table}.md`"
+> - `{connection-name}/{schema}/{table}.md`"
 
 ---
 

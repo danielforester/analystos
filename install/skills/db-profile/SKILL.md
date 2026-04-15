@@ -326,14 +326,17 @@ Do not ask if no anomalies were detected — there is nothing worth saving.
 
 ### Case A: KB entry already exists
 
-File `db-knowledge/{schema}/{table_name}.md` exists.
+First, read `.claude/db-connections/active.yaml` to determine `name` (the active connection name)
+and the active schema from `schema_scope`.
+
+File `db-knowledge/{connection-name}/{schema}/{table_name}.md` exists.
 
 1. Read the file
 2. Locate the `## Gotchas` section
 3. Append any flags not already documented there (match by flag text to avoid
    duplicates)
 4. Write the updated file
-5. Confirm: "Added {N} gotcha(s) to `db-knowledge/{schema}/{table_name}.md`."
+5. Confirm: "Added {N} gotcha(s) to `db-knowledge/{connection-name}/{schema}/{table_name}.md`."
 
 Format each appended flag as a bullet using the anomaly flag text from Step 3a:
 
@@ -347,7 +350,7 @@ Format each appended flag as a bullet using the anomaly flag text from Step 3a:
 
 ### Case B: No KB entry exists
 
-File `db-knowledge/{schema}/{table_name}.md` does not exist.
+File `db-knowledge/{connection-name}/{schema}/{table_name}.md` does not exist.
 
 Create a minimal stub containing only the gotchas and open questions sections, then
 confirm and suggest the next step:
@@ -370,7 +373,7 @@ confirm and suggest the next step:
 ```
 
 After writing:
-> "Created `db-knowledge/{schema}/{table_name}.md` with {N} gotcha(s). This is a
+> "Created `db-knowledge/{connection-name}/{schema}/{table_name}.md` with {N} gotcha(s). This is a
 > stub — run `/db-explain {table_name}` to add grain, business purpose, and key
 > column descriptions."
 

@@ -1,6 +1,6 @@
 ---
 name: db-document
-description: Interactive table documentation workflow. Runs introspection on a target table, checks for an existing KB entry, drafts a structured data dictionary entry via db-doc-writer, accepts analyst review and corrections, and writes the final entry to db-knowledge/{schema}/{table}.md. Use /db-document when you want to create or update a table's KB entry.
+description: Interactive table documentation workflow. Runs introspection on a target table, checks for an existing KB entry, drafts a structured data dictionary entry via db-doc-writer, accepts analyst review and corrections, and writes the final entry to db-knowledge/{connection-name}/{schema}/{table}.md. Use /db-document when you want to create or update a table's KB entry.
 user-invocable: true
 argument-hint: "<table_name> [schema_name]"
 allowed-tools:
@@ -35,9 +35,19 @@ and file writing in a single interactive flow.
 ## Step 1: Load Connection Context
 
 Read `.claude/db-connections/active.yaml`. Identify:
+- `name` — the active connection name, used as the top-level KB directory
 - `type` — database dialect
 - `schema_scope` — active schema(s) to qualify the table name
 - `emit_frontmatter` — whether to include YAML frontmatter in KB entries (default: false)
+
+Also extract the actual database name from the dialect-specific config block:
+- Oracle: `oracle.service_name`
+- Snowflake: `snowflake.database` (on `snowflake.account`)
+- Athena: `athena.database` (region: `athena.region`)
+- SQLite: `sqlite.path`
+- Salesforce: `salesforce.instance_url`
+
+This database name will be included in the KB entry header.
 
 If `schema_name` was passed as an argument, use it. Otherwise use the first entry in
 `schema_scope` (or the SQLite-implied schema `main`).
@@ -69,7 +79,7 @@ If introspection fails (table not found, permission denied), stop and report:
 
 ## Step 3: Check for Existing KB Entry
 
-Check whether `db-knowledge/{schema}/{table_name}.md` exists.
+Check whether `db-knowledge/{connection-name}/{schema}/{table_name}.md` exists.
 
 **If the file exists:**
 - Read its contents
@@ -122,11 +132,11 @@ After each correction, confirm the change:
 
 When the analyst types **save**:
 
-1. Determine the output path: `db-knowledge/{schema}/{table_name}.md`
-2. If the directory `db-knowledge/{schema}/` does not exist, note that it needs to be created
+1. Determine the output path: `db-knowledge/{connection-name}/{schema}/{table_name}.md`
+2. If the directory `db-knowledge/{connection-name}/{schema}/` does not exist, note that it needs to be created
 3. Write the approved draft to the file (UTF-8 encoding)
 4. Confirm:
-   > "Saved to `db-knowledge/{schema}/{table_name}.md`."
+   > "Saved to `db-knowledge/{connection-name}/{schema}/{table_name}.md`."
 
 If overwriting an existing entry, confirm with one extra line:
    > "(Previous entry overwritten. Use `git diff` to review changes.)"

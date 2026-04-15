@@ -16,10 +16,12 @@ At the start of every session, do the following silently (no need to narrate eac
    - Note the active connection `name`, `type`, and `cost_thresholds`.
 
 2. **Load the knowledge base** — Scan `db-knowledge/`:
-   - Read `README.md` for the schema index.
-   - Read `_gotchas.md` for cross-schema warnings.
+   - Read `README.md` for the connection/schema index.
+   - Read `_gotchas.md` for cross-connection project-wide warnings.
    - Read `_open-questions.md` for unresolved issues.
-   - If a schema subfolder exists that matches the active connection's database/schema, read its `_schema-overview.md`.
+   - Look for a `db-knowledge/{connection-name}/` subfolder matching the active connection's `name`.
+     If found: read `_gotchas.md` within it for cross-schema warnings, and read the
+     `_schema-overview.md` for any schema in `schema_scope`.
    - Keep these in working context for the session.
 
 3. **Confirm ready** — Greet the user with a one-line summary:
@@ -60,4 +62,5 @@ At the start of every session, do the following silently (no need to narrate eac
 ## Knowledge Base Location
 
 `db-knowledge/` — All findings, table notes, gotchas, and saved queries live here.
+Organized as `db-knowledge/{connection-name}/{schema}/{table}.md`.
 These files are the durable output of this assistant. Keep them tidy and up to date.

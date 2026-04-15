@@ -347,12 +347,13 @@ The graph view reflects *link presence*, not *relationship semantics*. It shows 
 | `.claude/CLAUDE.md` | Claude Code project instructions; loads DB context at session start |
 | `.claude/db-connections/active.yaml` | Active connection profile (gitignored) |
 | `.claude/db-connections/connections.example.yaml` | Template for connection profiles |
-| `db-knowledge/README.md` | Index of all documented schemas |
-| `db-knowledge/_gotchas.md` | Cross-schema warnings |
+| `db-knowledge/README.md` | Index of all documented connections/schemas |
+| `db-knowledge/_gotchas.md` | Cross-connection, project-wide warnings |
 | `db-knowledge/_open-questions.md` | Unresolved questions |
-| `db-knowledge/{schema}/_schema-overview.md` | Schema-level orientation document |
-| `db-knowledge/{schema}/{table}.md` | Per-table data dictionary entry |
-| `db-knowledge/{schema}/_queries/{name}.sql` | Named canonical queries |
+| `db-knowledge/{connection-name}/_gotchas.md` | Cross-schema gotchas for this connection |
+| `db-knowledge/{connection-name}/{schema}/_schema-overview.md` | Schema-level orientation document |
+| `db-knowledge/{connection-name}/{schema}/{table}.md` | Per-table data dictionary entry |
+| `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql` | Named canonical queries |
 | `db-knowledge/_external-docs/` | Placeholder for future external doc ingestion |
 
 ---

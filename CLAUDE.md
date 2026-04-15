@@ -63,13 +63,15 @@ Session context loading (active connection + KB) is handled by the project-level
 ### Knowledge Base Layout (target state)
 ```
 db-knowledge/
-├── README.md                    # Index of all schemas
-├── _gotchas.md                  # Cross-schema warnings
+├── README.md                         # Index of all connections/schemas
+├── _gotchas.md                       # Cross-connection, project-wide warnings
 ├── _open-questions.md
-├── {schema}/
-│   ├── _schema-overview.md      # Entity clusters, relationships
-│   ├── {table}.md               # Per-table data dictionary
-│   └── _queries/{name}.sql      # Named canonical queries
+├── {connection-name}/                # One dir per connection (matches name in active.yaml)
+│   ├── _gotchas.md                   # Cross-schema gotchas for this connection
+│   └── {schema}/
+│       ├── _schema-overview.md       # Entity clusters, relationships
+│       ├── {table}.md                # Per-table data dictionary
+│       └── _queries/{name}.sql       # Named canonical queries
 └── _external-docs/README.md
 ```
 
@@ -100,8 +102,8 @@ starter-project/       # Ready-to-use project — copy this folder to start imme
         create-demo-db.sql
         demo.db
     example_schema/
-      _schema-overview-template.md   # Copy → db-knowledge/{schema}/_schema-overview.md
-      _table-template.md             # Copy → db-knowledge/{schema}/{table}.md
+      _schema-overview-template.md   # Copy → db-knowledge/{connection-name}/{schema}/_schema-overview.md
+      _table-template.md             # Copy → db-knowledge/{connection-name}/{schema}/{table}.md
   db-knowledge/                      # Blank KB scaffold (README, _gotchas, _open-questions)
   .gitignore                         # Protects credentials in real projects
 

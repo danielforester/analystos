@@ -35,9 +35,17 @@ the format of `.claude/example_schema/_schema-overview-template.md`.
 ## Step 1: Load Connection Context
 
 Read `.claude/db-connections/active.yaml`. Identify:
-- Active connection name and type
+- `name` — the active connection name (used as the top-level KB directory)
+- `type` — database dialect
 - `schema_scope` — the schemas/databases configured for this connection
 - Whether a `schema_name` argument was passed by the user
+
+Also extract the actual database name from the dialect-specific config block:
+- Oracle: `oracle.service_name`
+- Snowflake: `snowflake.database` (on `snowflake.account`)
+- Athena: `athena.database` (region: `athena.region`)
+- SQLite: `sqlite.path`
+- Salesforce: `salesforce.instance_url`
 
 If `active.yaml` does not exist, stop and tell the user:
 > "No active connection found. Please copy `templates/connections.example.yaml` to `.claude/db-connections/active.yaml` and configure your connection."
@@ -139,7 +147,7 @@ Use the sample output to:
 
 ## Step 6: Check Existing KB Entry
 
-Check whether `db-knowledge/{schema}/_schema-overview.md` exists.
+Check whether `db-knowledge/{connection-name}/{schema}/_schema-overview.md` exists.
 
 If it exists:
 > "Note: A schema overview already exists in the knowledge base (last updated: {date from file header, or unknown}).
@@ -161,7 +169,8 @@ Include all sections below. Fill in what you can from introspection; note gaps e
 ```markdown
 # {SCHEMA_NAME} — Schema Overview
 
-**Database:** {database type}
+**Connection:** `{connection-name}`
+**Database:** {database type} — {database name from dialect config}
 **Schema / Dataset:** `{schema_name}`
 **Last Updated:** {today's date}
 **Status:** Draft
@@ -304,17 +313,17 @@ Scan column names across all tables for these patterns:
 
 After presenting the orientation, always ask:
 
-> "Save this orientation to `db-knowledge/{schema}/_schema-overview.md`?
+> "Save this orientation to `db-knowledge/{connection-name}/{schema}/_schema-overview.md`?
 > (y = save, n = skip, update = overwrite existing)"
 
 If the user says **y** or **save**:
-1. Create the directory `db-knowledge/{schema}/` if it does not exist
+1. Create the directory `db-knowledge/{connection-name}/{schema}/` if it does not exist
 2. Write the orientation document (without the markdown code fence wrappers) to `_schema-overview.md`
-3. Confirm: "Saved to `db-knowledge/{schema}/_schema-overview.md`."
+3. Confirm: "Saved to `db-knowledge/{connection-name}/{schema}/_schema-overview.md`."
 
 If an existing file was present and the user says **update**:
 - Overwrite the existing file
-- Confirm: "Updated `db-knowledge/{schema}/_schema-overview.md`."
+- Confirm: "Updated `db-knowledge/{connection-name}/{schema}/_schema-overview.md`."
 
 If the user says **n** or **skip**: acknowledge and move on.
 

@@ -63,12 +63,16 @@ Stop here if no connection is found.
 
 ## Step 2: Scan Knowledge Base
 
-Scan `db-knowledge/`. Collect:
+Scan `db-knowledge/`. The structure is two levels deep: `db-knowledge/{connection-name}/{schema}/`.
+Connection-level directories are any subdirectories not prefixed with `_`. Within each, schema
+directories are also any subdirectories not prefixed with `_`.
 
-- **Schemas with overview:** Count subdirectories that contain a `_schema-overview.md` file
-- **Tables documented:** Count all `{table}.md` files (exclude files starting with `_`)
-- **Active gotchas:** Count `## ⚠️` or `### ⚠️` headings in `_gotchas.md` (root and all schema subdirs)
-- **Open questions:** Count unchecked `- [ ]` items in `_open-questions.md` (root and all schema subdirs)
+Collect:
+
+- **Schemas with overview:** Count `{connection-name}/{schema}/` directories that contain a `_schema-overview.md` file
+- **Tables documented:** Count all `{table}.md` files at the schema level (exclude files starting with `_`)
+- **Active gotchas:** Count `## ⚠️` or `### ⚠️` headings in all `_gotchas.md` files (root, connection-level, and schema-level)
+- **Open questions:** Count unchecked `- [ ]` items in all `_open-questions.md` files (root and all subdirs)
 
 If `db-knowledge/` does not exist or is empty:
 - Report all KB counts as 0

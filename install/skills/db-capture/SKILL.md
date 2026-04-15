@@ -25,7 +25,7 @@ No database introspection is required. This command is purely a save operation.
 1. Identify the query to capture
 2. Gather context from the analyst (name, purpose, result summary, caveats)
 3. Format the annotated `.sql` file
-4. Write to `db-knowledge/{schema}/_queries/{name}.sql`
+4. Write to `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql`
 5. Offer to link in the relevant table's KB entry
 
 ---
@@ -51,6 +51,7 @@ analyst ran.
 ## Step 2: Determine Target Location
 
 Read `.claude/db-connections/active.yaml` for:
+- `name` — the active connection name, used as the top-level KB directory
 - `type` — database dialect (for the header comment)
 - `schema_scope` — the active schema, used to determine the save path
 
@@ -63,7 +64,7 @@ Validate the name: only lowercase letters, numbers, and hyphens. If the analyst 
 a name with spaces or underscores, convert it and confirm:
 > "Using name: `{converted_name}` — OK?"
 
-Determine the output path: `db-knowledge/{schema}/_queries/{name}.sql`
+Determine the output path: `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql`
 
 ---
 
@@ -125,7 +126,7 @@ Produce the following file content:
 ```
 
 Show the formatted file to the analyst:
-> "Here's the file that will be saved to `db-knowledge/{schema}/_queries/{name}.sql`:"
+> "Here's the file that will be saved to `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql`:"
 > {formatted file content}
 > "Save it? (y/n)"
 
@@ -135,14 +136,14 @@ Show the formatted file to the analyst:
 
 When the analyst confirms:
 
-1. Check that `db-knowledge/{schema}/_queries/` exists. If not, note:
-   > "The `_queries/` directory does not exist yet — it will need to be created at `db-knowledge/{schema}/_queries/`."
+1. Check that `db-knowledge/{connection-name}/{schema}/_queries/` exists. If not, note:
+   > "The `_queries/` directory does not exist yet — it will need to be created at `db-knowledge/{connection-name}/{schema}/_queries/`."
    Create it, then proceed.
 
 2. Write the formatted content to the file (UTF-8 encoding).
 
 3. Confirm:
-   > "Saved to `db-knowledge/{schema}/_queries/{name}.sql`."
+   > "Saved to `db-knowledge/{connection-name}/{schema}/_queries/{name}.sql`."
 
 If a file with the same name already exists, warn before overwriting:
 > "A file named `{name}.sql` already exists in `_queries/`. Overwrite? (y/n)"
@@ -154,10 +155,10 @@ If a file with the same name already exists, warn before overwriting:
 If primary tables were identified (step 3 or auto-detected):
 
 > "Would you like me to add a reference to this query in the KB entry for `{primary_table}`?
-> (y/n — I'll add a link under the 'Sample Query' section of `db-knowledge/{schema}/{primary_table}.md`)"
+> (y/n — I'll add a link under the 'Sample Query' section of `db-knowledge/{connection-name}/{schema}/{primary_table}.md`)"
 
 If yes:
-- Check whether `db-knowledge/{schema}/{primary_table}.md` exists
+- Check whether `db-knowledge/{connection-name}/{schema}/{primary_table}.md` exists
 - If it exists: find the `## Sample Query` section and append a reference:
   ```markdown
   - See [`{name}.sql`](_queries/{name}.sql) — {purpose (first sentence)}

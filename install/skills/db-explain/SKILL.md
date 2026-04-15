@@ -50,10 +50,15 @@ If no target is provided after `/db-explain`, ask:
 
 ## Step 2: Check the Knowledge Base
 
-Before running any database queries, check `db-knowledge/` for existing documentation:
+Before running any database queries, check `db-knowledge/` for existing documentation.
 
-- For a table: look for `db-knowledge/{schema}/{table_name}.md`
-- For a column: look for `db-knowledge/{schema}/{table_name}.md` and scan for a column entry
+First, read `.claude/db-connections/active.yaml` to determine:
+- `name` — the active connection name (top-level KB directory)
+- The actual database name from the dialect-specific config block (e.g., `oracle.service_name`, `snowflake.database`, `athena.database`, `sqlite.path`, `salesforce.instance_url`)
+
+Then look up:
+- For a table: look for `db-knowledge/{connection-name}/{schema}/{table_name}.md`
+- For a column: look for `db-knowledge/{connection-name}/{schema}/{table_name}.md` and scan for a column entry
 - For a query: no KB check needed
 
 If an existing KB entry is found:
@@ -230,15 +235,15 @@ If no risks detected: "No obvious risks detected in this query."
 
 After explaining a **table or view**, always ask:
 
-> "Save this explanation to `db-knowledge/{schema}/{table_name}.md`? (y/n)"
+> "Save this explanation to `db-knowledge/{connection-name}/{schema}/{table_name}.md`? (y/n)"
 
 If yes:
-1. Create `db-knowledge/{schema}/` directory if it doesn't exist
+1. Create `db-knowledge/{connection-name}/{schema}/` directory if it doesn't exist
 2. Write the explanation (formatted as a KB entry — see format below) to `{table_name}.md`
-3. Confirm: "Saved to `db-knowledge/{schema}/{table_name}.md`."
+3. Confirm: "Saved to `db-knowledge/{connection-name}/{schema}/{table_name}.md`."
 
 After explaining a **column**, ask:
-> "Add this column explanation to `db-knowledge/{schema}/{table_name}.md`? (y/n)"
+> "Add this column explanation to `db-knowledge/{connection-name}/{schema}/{table_name}.md`? (y/n)"
 
 If yes:
 - If the file exists, append the column entry to the appropriate section
@@ -254,6 +259,8 @@ If yes:
 ```markdown
 # {TABLE_NAME}
 
+**Connection:** `{connection-name}`
+**Database:** {type} — {database name from dialect config}
 **Schema:** `{schema}`
 **Type:** {Table | View}
 **Last Updated:** {today's date}

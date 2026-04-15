@@ -227,8 +227,11 @@ After all relationship blocks, output a compact summary:
 
 After presenting join paths, ask:
 
-> "Add these relationship blocks to `db-knowledge/{schema}/_schema-overview.md`?
+> "Add these relationship blocks to `db-knowledge/{connection-name}/{schema}/_schema-overview.md`?
 > (y = append to Section 3 and update Section 4 summary table, n = skip)"
+
+First, read `.claude/db-connections/active.yaml` to determine `name` (the active connection name)
+and the active schema from `schema_scope`.
 
 If yes and `_schema-overview.md` exists:
 - Find Section 3 (Key Relationships) and append the new relationship blocks
@@ -237,7 +240,7 @@ If yes and `_schema-overview.md` exists:
 
 If the file does not exist:
 - Offer to run `/db-orient` first to create a full overview, or save just the join paths as a standalone file:
-  `db-knowledge/{schema}/_joins-{table_a}-{table_b}.md`
+  `db-knowledge/{connection-name}/{schema}/_joins-{table_a}-{table_b}.md`
 
 ---
 

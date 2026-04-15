@@ -45,22 +45,31 @@ If the target is ambiguous (same name exists in multiple schemas), ask:
 
 ## Step 2: Load from Knowledge Base (Always First)
 
-Check the following KB locations. For a table target, check all three. For schema target,
-check the first two. For no argument, scan all.
+First, read `.claude/db-connections/active.yaml` to determine `name` (the active connection name)
+and the active schema from `schema_scope`.
 
-### 2a. Cross-schema gotchas
+Check the following KB locations. For a table target, check all four. For schema target,
+check the first three. For no argument, scan all.
+
+### 2a. Cross-connection, project-wide gotchas
 File: `db-knowledge/_gotchas.md`
 
 Load and filter for entries that mention the target table or schema, or that are marked
-as "Affects: All" / cross-schema.
+as "Affects: All" / cross-connection.
 
-### 2b. Schema-level gotchas
-File: `db-knowledge/{schema}/_schema-overview.md`, **Section 6 (Schema-Level Gotchas)**
+### 2b. Cross-schema gotchas for this connection
+File: `db-knowledge/{connection-name}/_gotchas.md`
+
+If the file exists, load and filter for entries relevant to the target table or schema,
+or marked as affecting all schemas in this connection.
+
+### 2c. Schema-level gotchas
+File: `db-knowledge/{connection-name}/{schema}/_schema-overview.md`, **Section 6 (Schema-Level Gotchas)**
 
 If the file exists, extract the gotcha list from Section 6.
 
-### 2c. Per-table gotchas
-File: `db-knowledge/{schema}/{table_name}.md`, **Gotchas section**
+### 2d. Per-table gotchas
+File: `db-knowledge/{connection-name}/{schema}/{table_name}.md`, **Gotchas section**
 
 If the file exists, extract the Gotchas section.
 
@@ -73,8 +82,11 @@ If KB entries were found, present them grouped by scope:
 ```
 ## Gotchas for {target}
 
-### Cross-schema
-{entries from _gotchas.md, if relevant}
+### Cross-connection
+{entries from db-knowledge/_gotchas.md, if relevant}
+
+### Connection: {connection-name} (cross-schema)
+{entries from db-knowledge/{connection-name}/_gotchas.md, if relevant}
 
 ### Schema: {schema_name}
 {entries from _schema-overview.md Section 6, if present}
@@ -90,7 +102,7 @@ Last updated: {date from file header, or "unknown"}
 If no relevant KB entries exist for any scope, proceed to Step 4 (live fallback).
 
 If **some but not all** scopes have KB entries, show what exists and note what's missing:
-> "No KB entries found for `{table_name}` specifically. Showing schema-level gotchas — run live introspection to check for table-specific patterns?"
+> "No KB entries found for `{table_name}` specifically. Showing schema-level and connection-level gotchas — run live introspection to check for table-specific patterns?"
 
 ---
 
@@ -154,13 +166,15 @@ Source: live introspection (not yet in KB)
 After presenting inferred gotchas, ask:
 
 > "Add confirmed gotchas to the knowledge base? I can append them to
-> `db-knowledge/_gotchas.md` or `db-knowledge/{schema}/{table}.md`.
+> `db-knowledge/{connection-name}/_gotchas.md` (cross-schema for this connection) or
+> `db-knowledge/{connection-name}/{schema}/{table}.md` (table-specific).
 > Which ones are correct? (list numbers, or 'all' / 'none')"
 
 If the analyst confirms one or more:
-- For table-specific gotchas: append to `db-knowledge/{schema}/{table}.md`
+- For table-specific gotchas: append to `db-knowledge/{connection-name}/{schema}/{table}.md`
   under the **Gotchas** section (create the file if it doesn't exist using the KB entry format)
-- For cross-schema patterns: append to `db-knowledge/_gotchas.md`
+- For cross-schema patterns within this connection: append to `db-knowledge/{connection-name}/_gotchas.md`
+- For truly cross-connection patterns: append to `db-knowledge/_gotchas.md`
 - Confirm: "Saved {N} gotcha(s) to the knowledge base."
 
 ---
