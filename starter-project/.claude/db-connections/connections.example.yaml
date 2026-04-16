@@ -172,26 +172,68 @@ connections:
 
   # ---------------------------------------------------------------------------
   # Salesforce — CRM and business object platform (SOQL, not SQL)
+  # Run queries via: python scripts/salesforce_connect.py --query "SELECT ..." --format csv
+  # First-time setup (sf_cli mode): sf org login web
+  # First-time setup (oauth_web mode): python scripts/salesforce_connect.py --auth-only
   # ---------------------------------------------------------------------------
   - name: salesforce-prod
     type: salesforce
     display_name: "Salesforce Production"
     read_only: true
-
-    # transport: direct           # Salesforce uses REST API calls, not Bash — treat as direct.
-    # mcp_server:                 # (leave blank for Salesforce)
+    transport: direct               # Use the salesforce_connect.py wrapper script
 
     salesforce:
-      instance_url_env: SF_INSTANCE_URL     # e.g. https://myorg.my.salesforce.com
-      api_version: "59.0"                   # Salesforce API version (update to latest stable)
-      # Auth option A — OAuth 2.0 client credentials (preferred for integrations):
-      client_id_env: SF_CLIENT_ID
-      client_secret_env: SF_CLIENT_SECRET
-      # Auth option B — username/password + security token (simpler for single-user scripts):
+      api_version: "62.0"           # Salesforce API version (update to latest stable)
+      sandbox: false                # true → connects to test.salesforce.com instead of login.salesforce.com
+
+      # ── Auth mode ────────────────────────────────────────────────────────────
+      # sf_cli       — Reuse an existing Salesforce CLI session (recommended, zero setup).
+      #                Works with SSO. Run `sf org login web` once in your terminal;
+      #                this mode reads ~/.sfdx/{username}.json and auto-refreshes the token.
+      #                Install the SF CLI: https://developer.salesforce.com/tools/salesforcecli
+      # oauth_web    — Browser OAuth 2.0 Authorization Code flow.
+      #                Requires a Connected App with callback URL: http://localhost:51778/callback
+      #                Works with SSO. Run once: python scripts/salesforce_connect.py --auth-only
+      # password     — Username + password + security token. No Connected App required.
+      #                Does NOT work if your org enforces SSO for all users.
+      # access_token — Paste a Bearer token from any source. Works with SSO.
+      #                Get one from: Salesforce Inspector browser extension (one-click copy),
+      #                DevTools → Application → Cookies → sid value, or
+      #                Workbench → Info → Session Information.
+      #                Typical lifetime: 2 hours (org-configurable).
+      auth_mode: sf_cli
+
+      # ── sf_cli mode ───────────────────────────────────────────────────────────
+      # sf_cli_username: user@example.com   # optional; auto-detects default org if omitted
+
+      # ── oauth_web mode ────────────────────────────────────────────────────────
+      # auth_mode: oauth_web
+      # Credentials stored directly in active.yaml (this file is gitignored):
+      # client_id: 3MVG9xxxYOUR_CONSUMER_KEY
+      # client_secret: ABC123YOUR_CONSUMER_SECRET
+      # redirect_port: 51778                # Must match the Connected App's callback URL
+      # Or point to environment variables instead:
+      # client_id_env: SF_CLIENT_ID
+      # client_secret_env: SF_CLIENT_SECRET
+
+      # ── password mode ─────────────────────────────────────────────────────────
+      # auth_mode: password
+      # Credentials stored directly in active.yaml (this file is gitignored):
+      # username: user@example.com
+      # password: mypasswordABCDEFG123TOKEN  # password + security token concatenated
+      # Or point to environment variables instead:
       # username_env: SF_USERNAME
-      # password_env: SF_PASSWORD           # Append security token to password value
-      # Auth option C — access token (for short-lived sessions):
+      # password_env: SF_PASSWORD
+
+      # ── access_token mode ─────────────────────────────────────────────────────
+      # auth_mode: access_token
+      # instance_url: https://myorg.my.salesforce.com
+      # Option A — store the token in this file (expires in ~2 hours; update when stale):
+      # access_token: 00D...YOUR_SESSION_TOKEN
+      # Option B — read from an env var:
       # access_token_env: SF_ACCESS_TOKEN
+      # Option C — prompt at session start (recommended for short-lived tokens):
+      # prompt: true                        # asks you to paste the token each session
 
     cost_thresholds:
       warn_records: 40000           # Warn when COUNT() estimate > 40k (synchronous limit is 50k)

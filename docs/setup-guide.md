@@ -22,8 +22,10 @@ pip install pyyaml
 pip install oracledb                    # Oracle  (thin mode — no Instant Client required)
 pip install boto3                       # AWS Athena
 pip install snowflake-connector-python  # Snowflake
+pip install simple-salesforce          # Salesforce
 ```
 SQLite requires no extra packages — Python's built-in `sqlite3` module is used.
+Salesforce's `sf_cli` auth mode also requires the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`), installed separately.
 For MCP-based connections, install the relevant MCP server instead of the Python driver (see Part 5).
 
 **Development / running the test suite (optional):**
@@ -180,6 +182,23 @@ If `user` or `password` are absent, the connector will prompt for them interacti
 aws sso login --profile my-analytics-profile
 ```
 
+**Salesforce** credentials go directly in `active.yaml` (it's gitignored).
+The recommended auth mode is `sf_cli` — authenticate once with the SF CLI and the connector
+reuses the session automatically (works with SSO):
+```bash
+sf org login web    # opens browser; handles SSO; run once per org
+```
+For username/password orgs (no SSO), set credentials directly:
+```yaml
+salesforce:
+  auth_mode: password
+  username: user@example.com
+  password: mypassword+SECURITYTOKEN   # password and security token concatenated
+```
+For a quick session using a browser-grabbed token, set `prompt: true` and the connector
+will ask you to paste it at startup — get the token from the Salesforce Inspector browser
+extension, DevTools → Application → Cookies → `sid`, or Workbench → Info → Session Information.
+
 ---
 
 ## Part 3 — Demo Database Quickstart
@@ -311,6 +330,8 @@ Repeat for any skill that runs queries (`db-query`, `db-profile`, `db-joins`, et
 |---|---|---|
 | Hooks not firing | Hook not registered in `settings.json` | Re-check Part 1b; restart Claude Code |
 | `ModuleNotFoundError: yaml` | PyYAML not installed | `pip install pyyaml` |
+| `ModuleNotFoundError: simple_salesforce` | simple-salesforce not installed | `pip install simple-salesforce` |
+| `No Salesforce CLI credential found` | SF CLI not authenticated | Run `sf org login web` in your terminal |
 | `No active connection found` | `active.yaml` missing | Follow Part 2b |
 | Safety hook blocking safe queries | False positive on keyword in command | Check the query for reserved words in non-SQL context; file an issue |
 | `/db-orient` not recognized | Skill not installed globally | Re-run the `cp -r install/skills/db-orient ~/.claude/skills/` command in Part 1a |
