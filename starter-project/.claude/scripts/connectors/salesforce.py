@@ -486,7 +486,8 @@ def _connect_playwright(cfg: SalesforceConfig) -> "Salesforce":
     """
     _ensure_playwright()
 
-    instance_url = _resolve_field(cfg.instance_url, cfg.instance_url_env, "instance_url")
+    # Strip trailing slash — simple_salesforce can double-slash API URLs otherwise
+    instance_url = _resolve_field(cfg.instance_url, cfg.instance_url_env, "instance_url").rstrip("/")
     cache_path = _token_cache_path(cfg)
 
     # Use instance_url as the cache key (no client_id for this mode)
@@ -551,12 +552,15 @@ def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
         while time.monotonic() < deadline:
             try:
                 for cookie in context.cookies():
-                    if (
-                        cookie["name"] == "sid"
-                        and instance_domain in cookie["domain"].lstrip(".")
-                        and _looks_like_sf_token(cookie["value"])
-                    ):
-                        sid = cookie["value"]
+                    if cookie["name"] != "sid":
+                        continue
+                    if instance_domain not in cookie["domain"].lstrip("."):
+                        continue
+                    # Chrome may URL-encode the cookie value (e.g. '!' → '%21').
+                    # Decode before using as a Bearer token.
+                    decoded = urllib.parse.unquote(cookie["value"])
+                    if _looks_like_sf_token(decoded):
+                        sid = decoded
                         break
             except Exception:
                 break
@@ -584,7 +588,12 @@ def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
 
 
 def _looks_like_sf_token(value: str) -> bool:
-    """Heuristic: Salesforce session tokens are long strings containing a '!' separator."""
+    """
+    Heuristic: Salesforce session tokens are long strings containing a '!' separator.
+
+    Format: {15-char-org-id}!{session-string}
+    Always call with the URL-decoded value (not the raw cookie string).
+    """
     return len(value) > 20 and "!" in value
 
 
