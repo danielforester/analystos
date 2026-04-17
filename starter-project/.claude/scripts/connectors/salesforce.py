@@ -2,21 +2,26 @@
 Salesforce connectivity core for AnalystOS.
 
 Uses simple-salesforce for SOQL execution and Salesforce REST API calls.
-Supports four auth modes:
+Supports five auth modes:
   - sf_cli       — Reuse an existing Salesforce CLI session (recommended, no setup required).
                    Run `sf org login web` once; this mode reads the stored token from
                    ~/.sfdx/{username}.json and auto-refreshes when expired.
+  - playwright   — Spawn a headed browser for interactive login (SSO-safe, no Connected App).
+                   Navigates to instance_url, waits for the user to complete login (including
+                   SSO), captures the session token from cookies, and caches it for ~2 hours.
+                   Requires: pip install playwright && playwright install chromium
   - oauth_web    — Browser-based OAuth 2.0 Authorization Code flow.
                    Requires a Connected App with http://localhost:{port}/callback registered.
                    Spawns browser, traps callback, caches token + refresh token.
   - password     — Username + password + security token. No Connected App required, but
                    does not work for orgs that enforce SSO for all users.
-  - access_token — Pre-obtained Bearer token from env var. Works with any auth method;
-                   grab the token from Salesforce Inspector (browser extension), the `sid`
-                   cookie in DevTools, or Workbench → Info → Session Information.
+  - access_token — Pre-obtained Bearer token. Works with any auth method; grab the token
+                   from Salesforce Inspector (browser extension), the `sid` cookie in
+                   DevTools, or Workbench → Info → Session Information.
+                   Supports direct value, env var, or interactive prompt (prompt: true).
                    Typical lifetime: 2 hours (org-configurable).
 
-Token cache (oauth_web only) is stored next to active.yaml as .sf_token_cache.json.
+Token cache (playwright and oauth_web) is stored next to active.yaml as .sf_token_cache.json.
 """
 
 from __future__ import annotations
@@ -95,6 +100,9 @@ class SalesforceConfig:
     # sf_cli mode — reads from ~/.sfdx/{username}.json
     sf_cli_username: str = ""   # leave blank to auto-detect the default org
 
+    # playwright mode
+    playwright_timeout: int = 120   # seconds to wait for login to complete
+
     # oauth_web mode — direct values (preferred) or env var names
     client_id: str = ""
     client_id_env: str = ""
@@ -150,14 +158,16 @@ def load_config(config_path: Path) -> SalesforceConfig:
     sf = conn.get("salesforce") or {}
     auth_mode = sf.get("auth_mode", "sf_cli")
 
-    if auth_mode not in ("sf_cli", "oauth_web", "password", "access_token"):
+    if auth_mode not in ("sf_cli", "playwright", "oauth_web", "password", "access_token"):
         raise ConfigError(
             f"Unknown Salesforce auth_mode '{auth_mode}'. "
-            "Must be: sf_cli, oauth_web, password, or access_token."
+            "Must be: sf_cli, playwright, oauth_web, password, or access_token."
         )
 
     # sf_cli: no required fields — username is optional (auto-detects default org)
-    if auth_mode == "oauth_web":
+    if auth_mode == "playwright":
+        _require_any(sf, [("instance_url", "instance_url_env")], conn_name, config_path)
+    elif auth_mode == "oauth_web":
         _require_any(sf, [("client_id", "client_id_env"), ("client_secret", "client_secret_env")],
                      conn_name, config_path)
     elif auth_mode == "password":
@@ -172,6 +182,7 @@ def load_config(config_path: Path) -> SalesforceConfig:
         auth_mode=auth_mode,
         sandbox=bool(sf.get("sandbox", False)),
         sf_cli_username=sf.get("sf_cli_username", ""),
+        playwright_timeout=int(sf.get("playwright_timeout", 120)),
         client_id=sf.get("client_id", ""),
         client_id_env=sf.get("client_id_env", ""),
         client_secret=sf.get("client_secret", ""),
@@ -246,6 +257,8 @@ def build_connection(cfg: SalesforceConfig) -> "Salesforce":
     try:
         if cfg.auth_mode == "sf_cli":
             return _connect_sf_cli(cfg)
+        elif cfg.auth_mode == "playwright":
+            return _connect_playwright(cfg)
         elif cfg.auth_mode == "oauth_web":
             return _connect_oauth_web(cfg)
         elif cfg.auth_mode == "password":
@@ -436,6 +449,143 @@ def _update_sf_cli_credential(cred_file: Path, new_access_token: str, new_instan
             f"[salesforce_connect] Warning: could not update CLI credential file: {exc}",
             file=sys.stderr,
         )
+
+
+# ---------------------------------------------------------------------------
+# Auth mode: playwright
+# ---------------------------------------------------------------------------
+
+
+def _ensure_playwright() -> None:
+    """Raise a helpful ConfigError if playwright is not installed."""
+    try:
+        import playwright.sync_api  # noqa: F401
+    except ImportError:
+        raise ConfigError(
+            "playwright is not installed.\n"
+            "Install it with:\n"
+            "  pip install playwright\n"
+            "  playwright install chromium"
+        )
+
+
+def _connect_playwright(cfg: SalesforceConfig) -> "Salesforce":
+    """
+    Spawn a headed browser for interactive Salesforce login, then capture the
+    session token from the browser's cookie jar.
+
+    Flow:
+      1. Check the token cache — reuse if not expired.
+      2. Open a Chromium window at instance_url.
+      3. User logs in (SSO, MFA, password — anything the browser supports).
+      4. Poll for the 'sid' cookie once the user reaches a Salesforce page.
+      5. Close the browser, cache the token, return a Salesforce instance.
+
+    The cache key is derived from instance_url + sandbox flag so different orgs
+    don't collide.
+    """
+    _ensure_playwright()
+
+    instance_url = _resolve_field(cfg.instance_url, cfg.instance_url_env, "instance_url")
+    cache_path = _token_cache_path(cfg)
+
+    # Use instance_url as the cache key (no client_id for this mode)
+    cached = _load_cached_token(cache_path, instance_url, cfg.sandbox)
+    if cached and not _is_token_expired(cached):
+        print("[salesforce_connect] Using cached Playwright session token.", file=sys.stderr)
+        return Salesforce(
+            instance_url=cached["instance_url"],
+            session_id=cached["access_token"],
+            version=cfg.api_version_clean,
+        )
+
+    print(
+        f"[salesforce_connect] Opening browser — log in to {instance_url} to continue.\n"
+        "[salesforce_connect] The browser will close automatically once login is detected.",
+        file=sys.stderr,
+    )
+    token = _playwright_login_flow(instance_url, cfg.playwright_timeout)
+    _save_cached_token(
+        cache_path,
+        {"access_token": token, "refresh_token": "", "instance_url": instance_url},
+        instance_url,
+        cfg.sandbox,
+    )
+    print("[salesforce_connect] Login detected. Token cached (~2 hours).", file=sys.stderr)
+    return Salesforce(
+        instance_url=instance_url,
+        session_id=token,
+        version=cfg.api_version_clean,
+    )
+
+
+def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
+    """
+    Open a headed Chromium browser at instance_url and poll for the Salesforce
+    session cookie ('sid') until it appears or timeout_seconds elapses.
+
+    Returns the sid value (a valid Bearer token, ~2 hours lifetime).
+    Raises AuthError if the login is not completed within timeout_seconds.
+    """
+    from playwright.sync_api import sync_playwright
+    from urllib.parse import urlparse
+
+    instance_domain = urlparse(instance_url).netloc
+
+    with sync_playwright() as pw:
+        browser = pw.chromium.launch(headless=False)
+        context = browser.new_context()
+        page = context.new_page()
+
+        try:
+            page.goto(instance_url, wait_until="domcontentloaded", timeout=30_000)
+        except Exception as exc:
+            try:
+                browser.close()
+            except Exception:
+                pass
+            raise NetworkError(f"Could not reach {instance_url}: {exc}") from exc
+
+        sid: str = ""
+        deadline = time.monotonic() + timeout_seconds
+        while time.monotonic() < deadline:
+            try:
+                for cookie in context.cookies():
+                    if (
+                        cookie["name"] == "sid"
+                        and instance_domain in cookie["domain"].lstrip(".")
+                        and _looks_like_sf_token(cookie["value"])
+                    ):
+                        sid = cookie["value"]
+                        break
+            except Exception:
+                break
+
+            if sid:
+                break
+
+            try:
+                page.wait_for_timeout(1000)
+            except Exception:
+                break
+
+        try:
+            browser.close()
+        except Exception:
+            pass
+
+    if not sid:
+        raise AuthError(
+            f"Salesforce session token not found after {timeout_seconds}s.\n"
+            "Make sure you completed the login and the browser reached the Salesforce home page.\n"
+            "If login takes longer, increase playwright_timeout in active.yaml."
+        )
+    return sid
+
+
+def _looks_like_sf_token(value: str) -> bool:
+    """Heuristic: Salesforce session tokens are long strings containing a '!' separator."""
+    return len(value) > 20 and "!" in value
 
 
 # ---------------------------------------------------------------------------

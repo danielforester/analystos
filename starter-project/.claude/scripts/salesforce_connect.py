@@ -17,7 +17,7 @@ Options:
     --describe OBJECT     Describe a Salesforce object (outputs JSON); no --query needed
     --count OBJECT        Count records in an object; combine with --where for filtered counts
     --where CLAUSE        WHERE clause for --count (omit the word WHERE)
-    --auth-only           Authenticate and cache the token, then exit
+    --auth-only           Authenticate (or open browser for playwright mode), cache token, exit
     --include-deleted     Use query_all() to include soft-deleted records (IsDeleted = true)
     --format csv|json     Output format for --query (default: csv)
     --limit N             Max rows to return; 0 = unlimited (default: 1000)

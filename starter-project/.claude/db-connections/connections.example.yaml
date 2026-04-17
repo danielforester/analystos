@@ -206,6 +206,14 @@ connections:
       # ── sf_cli mode ───────────────────────────────────────────────────────────
       # sf_cli_username: user@example.com   # optional; auto-detects default org if omitted
 
+      # ── playwright mode ───────────────────────────────────────────────────────
+      # auth_mode: playwright
+      # instance_url: https://myorg.my.salesforce.com
+      # playwright_timeout: 120              # seconds to wait for browser login (default 120)
+      # No Connected App required. Requires: pip install playwright && playwright install chromium
+      # The browser handles SSO, MFA, and any login flow natively.
+      # Token is cached for ~2 hours; subsequent runs reuse the cache automatically.
+
       # ── oauth_web mode ────────────────────────────────────────────────────────
       # auth_mode: oauth_web
       # Credentials stored directly in active.yaml (this file is gitignored):

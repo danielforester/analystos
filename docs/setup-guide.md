@@ -23,6 +23,8 @@ pip install oracledb                    # Oracle  (thin mode — no Instant Clie
 pip install boto3                       # AWS Athena
 pip install snowflake-connector-python  # Snowflake
 pip install simple-salesforce          # Salesforce
+pip install playwright                 # Salesforce playwright auth mode only
+playwright install chromium            # download browser (run after pip install playwright)
 ```
 SQLite requires no extra packages — Python's built-in `sqlite3` module is used.
 Salesforce's `sf_cli` auth mode also requires the [Salesforce CLI](https://developer.salesforce.com/tools/salesforcecli) (`sf`), installed separately.
@@ -195,6 +197,16 @@ salesforce:
   username: user@example.com
   password: mypassword+SECURITYTOKEN   # password and security token concatenated
 ```
+For orgs with SSO but no SF CLI setup, use `playwright` mode — it opens a real browser
+window and handles SSO, MFA, and any login flow natively, then captures the session token
+automatically. Set `instance_url` to your org URL and run `--auth-only` once:
+```yaml
+salesforce:
+  auth_mode: playwright
+  instance_url: https://myorg.my.salesforce.com
+```
+Requires `pip install playwright && playwright install chromium`.
+
 For a quick session using a browser-grabbed token, set `prompt: true` and the connector
 will ask you to paste it at startup — get the token from the Salesforce Inspector browser
 extension, DevTools → Application → Cookies → `sid`, or Workbench → Info → Session Information.
@@ -331,6 +343,7 @@ Repeat for any skill that runs queries (`db-query`, `db-profile`, `db-joins`, et
 | Hooks not firing | Hook not registered in `settings.json` | Re-check Part 1b; restart Claude Code |
 | `ModuleNotFoundError: yaml` | PyYAML not installed | `pip install pyyaml` |
 | `ModuleNotFoundError: simple_salesforce` | simple-salesforce not installed | `pip install simple-salesforce` |
+| `ModuleNotFoundError: playwright` | playwright not installed (playwright mode only) | `pip install playwright && playwright install chromium` |
 | `No Salesforce CLI credential found` | SF CLI not authenticated | Run `sf org login web` in your terminal |
 | `No active connection found` | `active.yaml` missing | Follow Part 2b |
 | Safety hook blocking safe queries | False positive on keyword in command | Check the query for reserved words in non-SQL context; file an issue |
