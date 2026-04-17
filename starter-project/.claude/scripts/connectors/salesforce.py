@@ -501,8 +501,9 @@ def _connect_playwright(cfg: SalesforceConfig) -> "Salesforce":
         )
 
     print(
-        f"[salesforce_connect] Opening browser — log in to {instance_url} to continue.\n"
-        "[salesforce_connect] The browser will close automatically once login is detected.",
+        f"[salesforce_connect] Opening browser — log in to {instance_url}.\n"
+        "[salesforce_connect] Complete your full login including any 2FA steps.\n"
+        "[salesforce_connect] The browser will close automatically once login is complete.",
         file=sys.stderr,
     )
     token = _playwright_login_flow(instance_url, cfg.playwright_timeout)
@@ -518,6 +519,27 @@ def _connect_playwright(cfg: SalesforceConfig) -> "Salesforce":
         session_id=token,
         version=cfg.api_version_clean,
     )
+
+
+def _test_sf_token(instance_url: str, token: str) -> bool:
+    """
+    Verify a Salesforce session token by calling /services/oauth2/userinfo.
+
+    Returns True only if the token is fully authenticated and accepted by the API.
+    A partial-auth token (captured before 2FA completes) returns HTTP 403 here.
+    Used during the Playwright flow to distinguish a valid post-2FA token from a
+    premature one captured mid-login.
+    """
+    try:
+        url = f"{instance_url}/services/oauth2/userinfo"
+        req = urllib.request.Request(
+            url,
+            headers={"Authorization": f"Bearer {token}", "Accept": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return resp.status == 200
+    except Exception:
+        return False
 
 
 def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
@@ -554,13 +576,29 @@ def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
                 for cookie in context.cookies():
                     if cookie["name"] != "sid":
                         continue
-                    if instance_domain not in cookie["domain"].lstrip("."):
+                    # Correct HTTP cookie domain scoping: cookie's domain must be a
+                    # suffix of instance_domain (covers exact match and parent domains).
+                    cookie_domain = cookie["domain"].lstrip(".")
+                    if not (
+                        instance_domain == cookie_domain
+                        or instance_domain.endswith("." + cookie_domain)
+                    ):
                         continue
                     # Chrome may URL-encode the cookie value (e.g. '!' → '%21').
-                    # Decode before using as a Bearer token.
                     decoded = urllib.parse.unquote(cookie["value"])
-                    if _looks_like_sf_token(decoded):
+                    if not _looks_like_sf_token(decoded):
+                        continue
+                    # Verify the token works before accepting it.
+                    # A partial-auth sid (captured before 2FA completes) returns 403.
+                    # A fully-authenticated sid (post-2FA) returns 200.
+                    # This is more reliable than guessing from the browser URL.
+                    if _test_sf_token(instance_url, decoded):
                         sid = decoded
+                        print(
+                            f"[salesforce_connect] Login complete — captured verified "
+                            f"sid from '{cookie['domain']}': {decoded[:18]}…",
+                            file=sys.stderr,
+                        )
                         break
             except Exception:
                 break
@@ -569,7 +607,7 @@ def _playwright_login_flow(instance_url: str, timeout_seconds: int) -> str:
                 break
 
             try:
-                page.wait_for_timeout(1000)
+                page.wait_for_timeout(2000)
             except Exception:
                 break
 
@@ -1132,7 +1170,15 @@ class SalesforceRunner:
             req = urllib.request.Request(url, headers={"Authorization": f"Bearer {token}"})
             with urllib.request.urlopen(req) as resp:
                 return json.loads(resp.read().decode("utf-8"))
-        except Exception:
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")
+            print(
+                f"[salesforce_connect] get_identity HTTP {exc.code}: {body[:200]}",
+                file=sys.stderr,
+            )
+            return {"preferred_username": "(unknown)"}
+        except Exception as exc:
+            print(f"[salesforce_connect] get_identity error: {exc}", file=sys.stderr)
             return {"preferred_username": "(unknown)"}
 
     def _reraise(self, exc: Exception) -> None:
