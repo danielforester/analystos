@@ -117,6 +117,7 @@ Knowledge Base
   Tables documented     : {N}
   Active gotchas        : {N}
   Open questions        : {N}
+  Semantic index        : {see below}
 
 Framework
   Skills  : db-dialect, db-cost-check, db-introspect, db-sample,
@@ -127,6 +128,17 @@ Run /db-orient to start exploring, or /db-explain {table} for a specific table.
 ```
 
 If only one connection is configured, omit the "Configured Connections" block.
+
+**Semantic index line** — rendered in the Knowledge Base block:
+
+Read `rag.enabled` from `active.yaml`.
+
+- If `rag.enabled` is `false` or the `rag:` block is absent: **omit the line entirely**.
+- If `rag.enabled` is `true`: run `python .claude/scripts/kb_search.py --status --format json`
+  and render one of:
+  - Index present: `{N} chunks from {M} files, built {YYYY-MM-DD HH:MM} ({age}h ago)`
+  - Index missing: `not built — run /db-index to build`
+  - Script not found: omit the line silently
 
 ---
 

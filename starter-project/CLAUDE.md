@@ -16,13 +16,28 @@ At the start of every session, do the following silently (no need to narrate eac
    - Note the active connection `name`, `type`, and `cost_thresholds`.
 
 2. **Load the knowledge base** — Scan `db-knowledge/`:
+
+   **2a. Check RAG config.** Read `active.yaml`. If `rag.enabled: true` and
+   `rag.session.prime_on_startup: true` (both default to `true` when the `rag:` block is present):
+
+   - Run: `python .claude/scripts/kb_search.py --session-prime --top-k {prime_top_k} --format context`
+     (where `{prime_top_k}` = `rag.session.prime_top_k`, default 15)
+   - **If this succeeds:** load the returned compact context block as your KB summary.
+     Skip steps 2b–2e. Proceed to step 2f.
+   - **If this returns `error: index_not_built`:** fall through to steps 2b–2e (standard path),
+     and note once in your greeting: `"Semantic index not found — run /db-index to build it for faster session loading."`
+   - **If `rag.enabled` is false or the `rag:` block is absent:** proceed directly to steps 2b–2e.
+
+   **2b–2e.** *(Reached only if RAG is disabled or the index is not yet built)*
    - Read `README.md` for the connection/schema index.
    - Read `_gotchas.md` for cross-connection project-wide warnings.
    - Read `_open-questions.md` for unresolved issues.
    - Look for a `db-knowledge/{connection-name}/` subfolder matching the active connection's `name`.
      If found: read `_gotchas.md` within it for cross-schema warnings, and read the
      `_schema-overview.md` for any schema in `schema_scope`.
-   - Keep these in working context for the session.
+
+   **2f. Keep KB context** — whether loaded via index (2a) or file reads (2b–2e), keep this
+   in working context for the session.
 
 3. **Confirm ready** — Greet the user with a one-line summary:
    > "Connected to **{display_name}** ({type}). KB loaded: {N} schemas, {M} gotchas. Ready."

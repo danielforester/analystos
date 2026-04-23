@@ -61,7 +61,24 @@ that materially changes the query structure.
 Before writing any SQL, check `db-knowledge/` for context.
 
 First, read `.claude/db-connections/active.yaml` to determine `name` (the active connection name)
-and the active schema from `schema_scope`. Then:
+and the active schema from `schema_scope`.
+
+**2a. Semantic table discovery (if analyst did not name a specific table and RAG is enabled)**
+
+If the analyst's question does not explicitly name a table AND `rag.enabled` is true in
+`active.yaml` AND `.claude/kb-index/kb_fts.db` exists, run:
+
+```
+python .claude/scripts/kb_search.py --query "{analyst_question}" --top-k 3 --type table --format json
+```
+
+Use the returned file paths as hints for which table docs and gotchas to read in steps 2b–2d.
+If the top result is a table not otherwise mentioned, note it:
+> "`{table_name}` may be relevant based on KB search — checking its documentation."
+
+If the index is not built (error: `index_not_built`), skip this sub-step silently.
+
+Then:
 
 1. Read `db-knowledge/_gotchas.md` — cross-connection, project-wide warnings
 2. Read `db-knowledge/{connection-name}/_gotchas.md` — cross-schema warnings for this connection

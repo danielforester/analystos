@@ -33,6 +33,20 @@ __pycache__/
 .venv/
 venv/
 
+# ── Semantic KB index ────────────────────────────────────────────────────────
+# Two-tier search index built by /db-index and kept fresh by the db-kb-reindex hook.
+
+# kb_vectors.db — embedding vectors; non-deterministic across providers; always gitignore
+.claude/kb-index/kb_vectors.db
+
+# kb_fts.db — FTS keyword index; deterministic; small (~1-2MB for 200 tables).
+# To share with your team (instant search on git pull, no rebuild needed), comment out
+# this line and set rag.fts.commit_to_git: true in active.yaml.
+.claude/kb-index/kb_fts.db
+
+# git does not track empty directories, so the kb-index/ folder itself is untracked
+# when both index files are ignored — this is expected.
+
 # ── What IS committed ────────────────────────────────────────────────────────
 # CLAUDE.md                                        ← project instructions
 # .claude/db-connections/connections.example.yaml  ← template, safe to commit

@@ -169,6 +169,28 @@ If any parse errors occurred, list them:
 
 ---
 
+## Step 6: Rebuild Semantic Index (if RAG enabled)
+
+After confirming the README update, read `.claude/db-connections/active.yaml` and check
+`rag.enabled`. If the key is absent, treat it as `false` for this step.
+
+**If `rag.enabled` is true:**
+
+Run:
+
+```
+python .claude/scripts/kb_search.py --build --kb {kb_path}
+```
+
+Show the one-line output to the analyst (e.g., `KB semantic index updated: 312 chunks from 47 files.`).
+
+If the script is not found at `.claude/scripts/kb_search.py`, skip silently — the analyst
+may not have the RAG feature installed yet.
+
+**If `rag.enabled` is false or the `rag:` block is absent:** skip silently.
+
+---
+
 ## Notes
 
 - This command reads files only — it never modifies table files, only README.md

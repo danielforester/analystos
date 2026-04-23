@@ -73,6 +73,22 @@ File: `db-knowledge/{connection-name}/{schema}/{table_name}.md`, **Gotchas secti
 
 If the file exists, extract the Gotchas section.
 
+### 2e. Semantic fallback (if RAG enabled and 2a–2d found nothing)
+
+If no relevant entries were found in steps 2a–2d, read `.claude/db-connections/active.yaml`
+and check `rag.enabled`. If true and `.claude/kb-index/kb_fts.db` exists, run:
+
+```
+python .claude/scripts/kb_search.py --query "{target}" --top-k 5 --format json
+```
+
+Present any results with score ≥ 0.1 under a `### Related KB entries (semantic match)` heading.
+These supplement the live fallback in Step 4 — do not skip live introspection if semantic
+results are inconclusive or if the analyst wants confirmed gotchas only.
+
+If the index is not built (error: `index_not_built`), skip this step silently and proceed
+to Step 3/Step 4 as normal.
+
 ---
 
 ## Step 3: Present KB Gotchas

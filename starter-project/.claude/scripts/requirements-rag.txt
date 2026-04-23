@@ -1,0 +1,26 @@
+# AnalystOS — optional dependencies for semantic KB search (RAG)
+#
+# The FTS keyword index works with zero additional dependencies.
+# Install packages below only if you want vector/embedding search.
+#
+# Install everything needed for a specific provider:
+#
+#   Local (offline, no API key needed):
+#     pip install -r requirements-rag.txt
+#
+#   OpenAI (smaller install, needs OPENAI_API_KEY env var):
+#     No package required — kb_search.py calls the API via stdlib urllib.
+#     Set rag.embeddings.provider: openai in active.yaml.
+#
+#   FTS-only (default — no install needed):
+#     Leave rag.embeddings.enabled: false in active.yaml (the default).
+
+# ── Local embeddings (offline, no API calls) ──────────────────────────────────
+# Requires ~700MB disk space for PyTorch CPU-only + model weights.
+# Set rag.embeddings.provider: local in active.yaml to activate.
+sentence-transformers>=2.6
+
+# ── OpenAI embeddings (optional package for connection pooling + retries) ─────
+# The core API call works without this package via stdlib urllib.request.
+# Uncomment if you want the official client's retry/timeout behaviour:
+# openai>=1.0
