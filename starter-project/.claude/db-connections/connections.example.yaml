@@ -247,3 +247,41 @@ connections:
       warn_records: 40000           # Warn when COUNT() estimate > 40k (synchronous limit is 50k)
       # Exceeding 50,000 rows in a synchronous SOQL query causes a hard QUERY_ROW_LIMIT_EXCEEDED error.
       # warn_records should be set below 50,000 to give the analyst a chance to add filters.
+
+# ── Semantic KB search (optional) ────────────────────────────────────────────
+# Builds a two-tier search index over db-knowledge/ so Claude can find KB entries
+# by concept ("where is customer LTV stored?") rather than only by exact file path.
+#
+# Remove this block entirely to disable RAG — all skills fall back to path lookup.
+# Run /db-index after adding this block to build the initial index.
+#
+# rag:
+#   enabled: true
+#
+#   fts:
+#     index_path: .claude/kb-index/kb_fts.db
+#     commit_to_git: false   # set true to commit the FTS index for instant team sharing on git pull
+#
+#   embeddings:
+#     enabled: false         # opt-in; FTS alone covers most queries
+#     provider: openai       # openai | local | none
+#                            #   openai — needs OPENAI_API_KEY env var; ~$0.01 to index 200-table KB
+#                            #   local  — offline; needs: pip install sentence-transformers (~700MB)
+#                            #   none   — FTS-only; embeddings block is parsed but skipped
+#     model: text-embedding-3-small
+#     api_key_env: OPENAI_API_KEY
+#     local_model: all-MiniLM-L6-v2
+#     index_path: .claude/kb-index/kb_vectors.db
+#
+#   chunking:
+#     strategy: section      # each ## heading in a KB file becomes its own indexed chunk
+#     max_chunk_tokens: 512
+#
+#   search:
+#     default_top_k: 5
+#     fts_weight: 0.6        # reciprocal rank fusion weight when both indexes are present
+#     embedding_weight: 0.4
+#
+#   session:
+#     prime_on_startup: true   # replace full KB file scan at startup with compact index summary
+#     prime_top_k: 15          # number of top chunks loaded into session context

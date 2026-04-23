@@ -49,6 +49,16 @@
             "command": "python ~/.claude/hooks/db-capture-prompt.py"
           }
         ]
+      },
+      {
+        "_comment": "KB reindex — incrementally rebuilds semantic index after any write to db-knowledge/",
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python ~/.claude/hooks/db-kb-reindex.py"
+          }
+        ]
       }
     ]
   }
